@@ -32,6 +32,13 @@ Open the project in Android Studio and run the `app` configuration on an Android
                 - call api
             - offline:
                 - show offline message
+     -saved:
+        - view: vertical
+        - show saved articles
+        - click → detail
+        - empty state
+        - offline readable
+        - Saved records are stored locally only and are not synced to the server. Clearing the app data removes all saved records.
 
 ## freshness policy:
     Things to Consider & Ranking.
