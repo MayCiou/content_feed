@@ -21,7 +21,13 @@ Open the project in Android Studio and run the `app` configuration on an Android
             - offline: 
                 - empty state
         - Weather card: 
-            - view: horizontal、data is loading / empty / error
+            - Q:why pick this source? 
+                ANS:1. Time Saver: Free API with no key registration required.
+                    2. Clean Data: Structured weather data requires less image handling compared to movies.
+                    3. Core Focus: Allowed me to focus on caching, freshness policy, offline support, pagination, and UI states within the time limit.
+            - source: Open-Meteo
+            - detect user current location
+            - view: horizontal、place weather card at the top of feed、data is loading / empty / error
             - online: 
                 - call api
             - offline:
