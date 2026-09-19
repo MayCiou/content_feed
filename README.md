@@ -31,7 +31,7 @@ Open the project in Android Studio and run the `app` configuration on an Android
             - online: 
                 - call api
             - offline:
-                - show last update time
+                - show offline message
 
 ## freshness policy:
     Things to Consider & Ranking.
