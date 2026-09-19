@@ -48,7 +48,7 @@ Open the project in Android Studio and run the `app` configuration on an Android
     4. When should we refresh?
     5. Pagination.
     4. Images.
-    5. Network usage.(Deferred,because I do not think they are the main factors in reducing mobile data usage. I will focus on the main requirements and use the refresh policy, cache, and pagination to reduce data usage.)
+    5. Network usage.(*Deferred*,because I do not think they are the main factors in reducing mobile data usage. I will focus on the main requirements and use the refresh policy, cache, and pagination to reduce data usage.)
 
     # Articles:
             Use cached data if it is less than 1 hour old. Otherwise, call the API.I chose 1 hour as a balance between freshness and network usage. Based on my research, 15 minutes to 1 hour is commonly used for feed updates, so I think 1 hour is reasonable for this project.
