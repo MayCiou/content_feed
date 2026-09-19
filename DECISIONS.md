@@ -68,19 +68,21 @@ Offline Article page: show empty state because offline browsing is not required 
 # Supports portrait mode only; tablet support is deferred due to time constraints.
 
 ##Task flow
+    UI
+    ↓
     API
     ↓
     Test / Verify API
-    ↓
-    Cache
-    ↓
-    Test / Verify Cache
     ↓
     Model
     ↓
     Test / Verify Model
     ↓
-    UI
+    Cache
+    ↓
+    Test / Verify Cache
+    ↓
+    Integrate
     ↓
     Test / Verify UI
     ↓
