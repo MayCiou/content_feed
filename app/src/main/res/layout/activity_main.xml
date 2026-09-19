@@ -79,6 +79,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutHeader" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/layoutBottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutWeatherCard"
+        tools:listitem="@layout/article_item" />
+
     <LinearLayout
         android:id="@+id/layoutBottomNav"
         android:layout_width="match_parent"
