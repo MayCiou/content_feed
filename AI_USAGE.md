@@ -21,5 +21,12 @@ Q:To get the exact refresh timing, I think we can do some market research.
 AI:I looked into a few practical examples for reference:
 Microsoft Outlook (RSS): Maximum polling frequency of 60 minutes.
 RSS.app: Notes that most consumer apps poll every 15 minutes to 1 hour, depending on the use case.
+Me: I see, 1 hour makes sense.
+
+Q:Weather should detect the user's current location.
+AI:The requirements don't strictly call for the user's current location, as it adds extra complexity like location permissions and 'permission denied' states.I suggest fixing the location to a default city, like Taipei.
+Me:
+    1. Hardcoding Taipei isn't a general solution for users in different locations. 
+    2. The general implementation: Request location permission, retrieve current latitude/longitude, and pass coordinates to the weather API for location-relevant data.
     
 
