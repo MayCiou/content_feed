@@ -17,9 +17,9 @@ Open the project in Android Studio and run the `app` configuration on an Android
                 - no more data
                 - pagination error
             - online: 
-                - call api、detail
+                - call api、click → detail
             - offline: 
-                - show save
+                - empty state
         - Weather card: 
             - view: horizontal、data is loading / empty / error
             - online: 
