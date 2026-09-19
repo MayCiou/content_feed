@@ -12,6 +12,10 @@ Open the project in Android Studio and run the `app` configuration on an Android
         - view: vertical、swiperefreshlayout、if offline show fixed message on top、scrolling smooth(like Instagram APP)
         - Articles: 
             - view: vertical、save(unsave)、thumb、data is loading / empty / error
+            - pagination
+                - load next page when reaching near bottom
+                - no more data
+                - pagination error
             - online: 
                 - call api、detail
             - offline: 
