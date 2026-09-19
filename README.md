@@ -55,23 +55,64 @@ Open the project in Android Studio and run the `app` configuration on an Android
     # Weather card:
             - Use cached data if it is less than 10 minutes old. Otherwise, call the API. This keeps the weather reasonably fresh without making too many network requests.
     #Flow
-                          Feed
+                            Feed
+                             │
+                             ▼
+                          Online?
+                       ┌─────┴─────┐
+                      No           Yes
+                      │             │
+                      ▼             ▼
+                Offline Message   Items
+                                    │
+                           ┌────────┴────────┐
+                           ▼                 ▼
+                       Weather            Article
+                           │                 │
+                       Fresh? < 10m      Fresh? < 1h
+                       ┌───┴───┐         ┌───┴───┐
+                      Yes      No        Yes      No
+                       │        │         │        │
+                       ▼        ▼         ▼        ▼
+                   Use Cache Call API  Use Cache Call API
+                                │                  │
+                                └────────┬─────────┘
+                                         ▼
+                                    Update Cache
+
+                    Saved                                             
+                      │
+                      ▼
+                   Local DB
+                      │
+                 ┌────┴────┐
+                 ▼         ▼
+               Empty    Has Saved
                            │
                            ▼
-                         Cache
+                       Saved List
                            │
-                ┌──────────┴──────────┐
-                │                     │
-                ▼                     ▼
-            Weather                Article
-          Fresh: < 10 min        Fresh: < 1 hour
-                │                     │
-          ┌─────┴─────┐         ┌─────┴─────┐
-          │           │         │           │
-          ▼           ▼         ▼           ▼
-       Use Cache   Call API   Use Cache   Call API
-                      │                     │
-                      └──────────┬──────────┘
-                                 ▼
-                            Update Cache
-  
+                           ▼
+                       Article Detail
+                           │
+                      ┌────┴────┐
+                      ▼         ▼
+                    Read      Unsave
+                                │
+                                ▼
+                         Delete Local DB
+
+                 Weather
+                    │
+                    ▼
+                    Location Permission
+                    │
+                    ┌─┴──────┐
+                    ▼        ▼
+                    Granted  Denied
+                    │        │
+                    ▼        ▼
+                    Lat/Lng  Offline Message
+                    │
+                    ▼
+                    Open-Meteo API
