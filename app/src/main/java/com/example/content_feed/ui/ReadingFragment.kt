@@ -23,6 +23,7 @@ import com.example.content_feed.ui.adapter.ArticleLoadStateAdapter
 import com.example.content_feed.ui.adapter.ArticlePagingAdapter
 import com.example.content_feed.util.NetworkUtil
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -66,8 +67,8 @@ class ReadingFragment : Fragment() {
 
         setupRecyclerView()
         setupWeatherObserver()
-        setupArticlesObserver()
         if (checkNetworkAndHandleOffline()) {
+            setupArticlesObserver()
             checkAndRequestLocationPermission()
         }
     }
@@ -152,12 +153,13 @@ class ReadingFragment : Fragment() {
             .show()
     }
 
+    private var articlesJob: Job? = null
+
     private fun setupArticlesObserver() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.articlesPagingData.collectLatest { pagingData ->
-                    articleAdapter.submitData(pagingData)
-                }
+        if (articlesJob != null) return
+        articlesJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.articlesPagingData.collectLatest { pagingData ->
+                articleAdapter.submitData(pagingData)
             }
         }
     }
@@ -166,6 +168,7 @@ class ReadingFragment : Fragment() {
         super.onResume()
         if (!isHidden) {
             if (checkNetworkAndHandleOffline()) {
+                setupArticlesObserver()
                 checkAndRequestLocationPermission()
             }
         }
@@ -174,7 +177,10 @@ class ReadingFragment : Fragment() {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
-            checkNetworkAndHandleOffline()
+            if (checkNetworkAndHandleOffline()) {
+                setupArticlesObserver()
+                checkAndRequestLocationPermission()
+            }
         }
     }
 
@@ -269,6 +275,8 @@ class ReadingFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        articlesJob?.cancel()
+        articlesJob = null
         _binding = null
     }
 }
