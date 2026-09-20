@@ -15,22 +15,29 @@ class ReadingViewModel @Inject constructor(
     private val locationRepository: LocationRepository
 ) : ViewModel() {
 
-    private val _apiLoadingStatus = MutableLiveData<String>()
-    val apiLoadingStatus: LiveData<String> = _apiLoadingStatus
+    private val _weatherUiState = MutableLiveData<WeatherUiState>()
+    val weatherUiState: LiveData<WeatherUiState> = _weatherUiState
+
+    fun onPermissionDenied() {
+        _weatherUiState.value = WeatherUiState.PermissionDenied
+    }
 
     fun fetchDataWithLocation() {
-        _apiLoadingStatus.value = "Locating..."
         viewModelScope.launch {
             val location = locationRepository.getCurrentLocation()
             if (location != null) {
                 val lat = location.latitude
                 val lng = location.longitude
-            
-                Log.d("ReadingViewModel", "Location acquired, calling API internally: Lat=$lat, Lng=$lng")
-                _apiLoadingStatus.value = "Location acquired, API call completed."
+                Log.d("ReadingViewModel", "Location acquired: Lat=$lat, Lng=$lng")
+                // Simulated weather data for demonstration
+                _weatherUiState.value = WeatherUiState.Success(
+                    city = "Taipei",
+                    temperature = "34°",
+                    weatherInfo = "Partly cloudy · H:35° L:28°"
+                )
             } else {
-                Log.d("ReadingViewModel", "Unable to get location, using default location for API call.")
-                _apiLoadingStatus.value = "Location failed, fallback used."
+                Log.d("ReadingViewModel", "Unable to get location.")
+                _weatherUiState.value = WeatherUiState.LocationUnavailable
             }
         }
     }

@@ -2,6 +2,7 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardWeather"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardCornerRadius="16dp"
@@ -12,43 +13,96 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/weather_card_bg"
-        android:padding="12dp">
+        android:minHeight="110dp"
+        android:padding="14dp">
+
+        <!-- ================= Normal Weather Content ================= -->
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/groupWeatherContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:constraint_referenced_ids="tvCity,tvTemperature,tvWeatherInfo"
+            tools:visibility="gone" />
 
         <TextView
             android:id="@+id/tvCity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Taipei"
             android:textColor="#E0F2F1"
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Taipei" />
 
         <TextView
             android:id="@+id/tvTemperature"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="34°"
             android:textColor="#FFFFFF"
-            android:textSize="42sp"
+            android:textSize="40sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvCity" />
+            app:layout_constraintTop_toBottomOf="@id/tvCity"
+            tools:text="34°" />
 
         <TextView
             android:id="@+id/tvWeatherInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Partly cloudy · H:35° L:28°"
             android:textColor="#E0F2F1"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTemperature" />
+            app:layout_constraintTop_toBottomOf="@id/tvTemperature"
+            tools:text="Partly cloudy · H:35° L:28°" />
+
+        <!-- ================= Status Notice (No Permission / Location Unavailable) ================= -->
+        <LinearLayout
+            android:id="@+id/layoutStatusNotice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/ivStatusIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="@string/weather_status_icon_cd"
+                app:tint="#FFFFFF"
+                tools:src="@drawable/ic_cloud_off" />
+
+            <TextView
+                android:id="@+id/tvStatusTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Location Permission Required" />
+
+            <TextView
+                android:id="@+id/tvStatusDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="center"
+                android:textColor="#E0F2F1"
+                android:textSize="12sp"
+                tools:text="Grant location permission to view local weather" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

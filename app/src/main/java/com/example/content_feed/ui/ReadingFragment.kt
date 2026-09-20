@@ -3,17 +3,22 @@ package com.example.content_feed.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Toast
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.content_feed.R
+import com.example.content_feed.databinding.FragmentReadingBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ReadingFragment : Fragment(R.layout.fragment_reading) {
+class ReadingFragment : Fragment() {
+
+    private var _binding: FragmentReadingBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel: ReadingViewModel by viewModels()
 
@@ -26,19 +31,54 @@ class ReadingFragment : Fragment(R.layout.fragment_reading) {
         if (fineGranted || coarseGranted) {
             viewModel.fetchDataWithLocation()
         } else {
-            Toast.makeText(requireContext(), "Permission denied, unable to get precise location.", Toast.LENGTH_SHORT).show()
+            viewModel.onPermissionDenied()
         }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentReadingBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Observe API loading status, purely for UI feedback (does not include sensitive location data)
-        viewModel.apiLoadingStatus.observe(viewLifecycleOwner) { status ->
-            Toast.makeText(requireContext(), status, Toast.LENGTH_SHORT).show()
-        }
-
+        setupWeatherObserver()
         checkAndRequestLocationPermission()
+    }
+
+    private fun setupWeatherObserver() {
+        val weatherBinding = binding.layoutWeatherCard
+
+        viewModel.weatherUiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is WeatherUiState.Success -> {
+                    weatherBinding.groupWeatherContent.visibility = View.VISIBLE
+                    weatherBinding.layoutStatusNotice.visibility = View.GONE
+                    weatherBinding.tvCity.text = state.city
+                    weatherBinding.tvTemperature.text = state.temperature
+                    weatherBinding.tvWeatherInfo.text = state.weatherInfo
+                }
+                is WeatherUiState.PermissionDenied -> {
+                    weatherBinding.groupWeatherContent.visibility = View.GONE
+                    weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
+                    weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_cloud_off)
+                    weatherBinding.tvStatusTitle.setText(R.string.weather_permission_needed_title)
+                    weatherBinding.tvStatusDescription.setText(R.string.weather_permission_needed_desc)
+                }
+                is WeatherUiState.LocationUnavailable -> {
+                    weatherBinding.groupWeatherContent.visibility = View.GONE
+                    weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
+                    weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_cloud_off)
+                    weatherBinding.tvStatusTitle.setText(R.string.weather_location_unavailable_title)
+                    weatherBinding.tvStatusDescription.setText(R.string.weather_location_unavailable_desc)
+                }
+            }
+        }
     }
 
     private fun checkAndRequestLocationPermission() {
@@ -62,5 +102,10 @@ class ReadingFragment : Fragment(R.layout.fragment_reading) {
                 )
             )
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
