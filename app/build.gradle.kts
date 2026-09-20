@@ -50,6 +50,7 @@ dependencies {
 
     // Location
     implementation(libs.google.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Lifecycle (ViewModel & LiveData)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

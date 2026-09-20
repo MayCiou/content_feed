@@ -5,10 +5,10 @@ import android.location.Location
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
 
 @Singleton
 class LocationRepository @Inject constructor(
@@ -17,25 +17,23 @@ class LocationRepository @Inject constructor(
 
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? {
-        return suspendCancellableCoroutine { continuation ->
-            val cts = CancellationTokenSource()
-
-            fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                cts.token
-            ).addOnSuccessListener { location ->
-                if (continuation.isActive) {
-                    continuation.resume(location)
-                }
-            }.addOnFailureListener {
-                if (continuation.isActive) {
-                    continuation.resume(null)
-                }
+        return try {
+            // 1. Try to get cached last known location first (almost instantaneous)
+            val lastLocation = fusedLocationClient.lastLocation.await()
+            if (lastLocation != null) {
+                return lastLocation
             }
 
-            continuation.invokeOnCancellation {
-                cts.cancel()
+            // 2. If no cache, request current location with balanced power accuracy and 5s timeout
+            withTimeoutOrNull(5000L) {
+                val cts = CancellationTokenSource()
+                fusedLocationClient.getCurrentLocation(
+                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    cts.token
+                ).await()
             }
+        } catch (e: Exception) {
+            null
         }
     }
 }
