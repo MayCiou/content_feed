@@ -69,7 +69,7 @@ class WeatherRepository @Inject constructor(
                     weatherDesc
                 }
 
-                val cityName = resolveCityName(latitude, longitude) ?: "Taipei"
+                val cityName = resolveCityName(latitude, longitude) ?: "Unknown"
 
                 val dateFormat = SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.getDefault())
                 val formattedTime = dateFormat.format(Date(currentTime))
