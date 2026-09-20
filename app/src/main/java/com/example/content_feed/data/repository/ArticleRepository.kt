@@ -22,6 +22,7 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 
 @Singleton
 class ArticleRepository @Inject constructor(
@@ -34,6 +35,8 @@ class ArticleRepository @Inject constructor(
         private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss"
         private const val MIN_REQUEST_INTERVAL_MS = 100L
         private const val MAX_429_RETRIES = 3
+
+        private const val DEFAULT_RETRY_AFTER_MS = 1500L
     }
 
     private val apiMutex = Mutex()
@@ -51,40 +54,75 @@ class ArticleRepository @Inject constructor(
         ).flow
     }
 
-    suspend fun getArticles(limit: Int = ArticlePagingSource.PAGE_SIZE, offset: Int = 0): List<ArticleItem> {
+    suspend fun getArticles(
+        limit: Int = ArticlePagingSource.PAGE_SIZE,
+        offset: Int = 0
+    ): List<ArticleItem> {
         return withContext(Dispatchers.IO) {
-            apiMutex.withLock {
-                throttleRequestInterval()
 
-                var retryCount = 0
-                var backoffDelay = 1000L
-                var articles: List<ArticleItem>? = null
+            var lastException: Exception? = null
 
-                while (articles == null) {
-                    try {
-                        val response = spaceflightApiService.getArticles(limit = limit, offset = offset)
-                        Log.d(TAG, "Articles loaded: limit=$limit, offset=$offset")
+            repeat(MAX_429_RETRIES + 1) { attempt ->
 
-                        articles = response.results.map { dto ->
-                            dto.toArticleItem()
-                        }
-                    } catch (e: Exception) {
-                        if (e is HttpException && e.code() == 429 && retryCount < MAX_429_RETRIES) {
-                            retryCount++
-                            Log.w(TAG, "Rate limited (HTTP 429). Retrying attempt $retryCount after ${backoffDelay}ms...")
-                            delay(backoffDelay)
-                            backoffDelay *= 2
-                        } else {
-                            throw e
-                        }
+                try {
+                    val response = apiMutex.withLock {
+                        throttleRequestInterval()
+
+                        Log.d(TAG, "Requesting articles: limit=$limit, offset=$offset")
+
+                        spaceflightApiService.getArticles(
+                            limit = limit,
+                            offset = offset
+                        )
                     }
+
+                    Log.d(TAG, "Articles loaded: limit=$limit, offset=$offset")
+
+                    val articles = response.results.map { dto ->
+                        dto.toArticleItem()
+                    }
+
+                    saveLastRefreshTimeAsync()
+
+                    return@withContext articles
+
+                } catch (e: CancellationException) {
+                    throw e
+
+                } catch (e: HttpException) {
+
+                    lastException = e
+
+                    if (e.code() != 429 || attempt >= MAX_429_RETRIES) {
+                        throw e
+                    }
+
+                    val backoffDelay =
+                        1000L * (1L shl attempt)
+
+                    val retryAfterMs =
+                        e.response()
+                            ?.headers()
+                            ?.get("Retry-After")
+                            ?.toLongOrNull()
+                            ?.times(1000L)
+                            ?: backoffDelay.coerceAtLeast(
+                                DEFAULT_RETRY_AFTER_MS
+                            )
+
+                    Log.w(
+                        TAG,
+                        "HTTP 429. Retrying " +
+                                "${attempt + 1}/$MAX_429_RETRIES " +
+                                "after ${retryAfterMs}ms..."
+                    )
+
+                    delay(retryAfterMs)
                 }
-
-                // Async update refresh time to DB without blocking return
-                saveLastRefreshTimeAsync()
-
-                articles
             }
+
+            throw lastException
+                ?: IllegalStateException("Unexpected API retry termination")
         }
     }
 
@@ -96,6 +134,8 @@ class ArticleRepository @Inject constructor(
             articleRefreshDao.insertOrUpdateArticleRefresh(
                 ArticleRefreshEntity(id = 1, lastArticleRefreshTime = formattedTime)
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (ignored: Exception) {
         }
     }
