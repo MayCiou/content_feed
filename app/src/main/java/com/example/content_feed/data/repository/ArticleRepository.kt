@@ -77,7 +77,7 @@ class ArticleRepository @Inject constructor(
                 pageSize = ArticlePagingSource.PAGE_SIZE,
                 initialLoadSize = ArticlePagingSource.PAGE_SIZE,
                 enablePlaceholders = false,
-                prefetchDistance = 10
+                prefetchDistance = 4
             ),
             pagingSourceFactory = { ArticlePagingSource(this) }
         ).flow
@@ -86,7 +86,8 @@ class ArticleRepository @Inject constructor(
     suspend fun getArticles(
         limit: Int = ArticlePagingSource.PAGE_SIZE,
         offset: Int = 0,
-        publishedAtLt: String? = null
+        publishedAtLt: String? = null,
+        isRefresh: Boolean = false
     ): List<ArticleItem> {
         return withContext(Dispatchers.IO) {
 
@@ -122,7 +123,9 @@ class ArticleRepository @Inject constructor(
                     }
                     articleDao.insertArticles(articleEntities)
 
-                    saveLastRefreshTime(formattedTime)
+                    if (isRefresh) {
+                        saveLastRefreshTime(formattedTime)
+                    }
 
                     return@withContext articleEntities.map { it.toArticleItem() }
 

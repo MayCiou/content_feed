@@ -11,7 +11,7 @@ class ArticlePagingSource(
 ) : PagingSource<String, ArticleItem>() {
 
     companion object {
-        const val PAGE_SIZE = 20
+        const val PAGE_SIZE = 10
     }
 
 
@@ -29,7 +29,7 @@ class ArticlePagingSource(
 
         return try {
 
-            // Initial load: try local cache first
+            // Initial load
             if (publishedAtLt == null) {
 
                 val shouldFetch =
@@ -40,39 +40,60 @@ class ArticlePagingSource(
                     val localArticles =
                         articleRepository.getCachedArticlesAsc()
 
-                    if (localArticles.isNotEmpty()) {
+                    val oldestPublishedAt =
+                        articleRepository.getOldestPublishedAt()
 
-                        val oldestPublishedAt =
-                            articleRepository.getOldestPublishedAt()
+                    return LoadResult.Page(
+                        data = localArticles,
+                        prevKey = null,
+                        nextKey = oldestPublishedAt
+                    )
+                }
 
-                        return LoadResult.Page(
-                            data = localArticles,
-                            prevKey = null,
-                            nextKey = oldestPublishedAt
-                        )
+                // Cache expired → fetch latest articles
+                val articles = articleRepository.getArticles(
+                    limit = params.loadSize,
+                    offset = 0,
+                    publishedAtLt = null,
+                    isRefresh = true
+                )
+
+                val nextKey =
+                    if (articles.isEmpty()) {
+                        null
+                    } else {
+                        articleRepository.getOldestPublishedAt()
                     }
-                }
+
+                LoadResult.Page(
+                    data = articles,
+                    prevKey = null,
+                    nextKey = nextKey
+                )
+
+            } else {
+
+                // Append → always fetch older articles
+                val articles = articleRepository.getArticles(
+                    limit = params.loadSize,
+                    offset = 0,
+                    publishedAtLt = publishedAtLt,
+                    isRefresh = false
+                )
+
+                val nextKey =
+                    if (articles.isEmpty()) {
+                        null
+                    } else {
+                        articleRepository.getOldestPublishedAt()
+                    }
+
+                LoadResult.Page(
+                    data = articles,
+                    prevKey = null,
+                    nextKey = nextKey
+                )
             }
-
-            // Initial API load or append
-            val articles = articleRepository.getArticles(
-                limit = params.loadSize,
-                offset = 0,
-                publishedAtLt = publishedAtLt
-            )
-
-            val nextKey =
-                if (articles.isEmpty()) {
-                    null
-                } else {
-                    articleRepository.getOldestPublishedAt()
-                }
-
-            LoadResult.Page(
-                data = articles,
-                prevKey = null,
-                nextKey = nextKey
-            )
 
         } catch (e: Exception) {
             LoadResult.Error(e)
