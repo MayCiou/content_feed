@@ -5,17 +5,26 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.content_feed.data.model.ArticleItem
+import com.example.content_feed.data.repository.ArticleRepository
 import com.example.content_feed.data.repository.LocationRepository
 import com.example.content_feed.data.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ReadingViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val articleRepository: ArticleRepository
 ) : ViewModel() {
+
+    val articlesPagingData: Flow<PagingData<ArticleItem>> =
+        articleRepository.getArticlesStream().cachedIn(viewModelScope)
 
     private val _weatherUiState = MutableLiveData<WeatherUiState>()
     val weatherUiState: LiveData<WeatherUiState> = _weatherUiState

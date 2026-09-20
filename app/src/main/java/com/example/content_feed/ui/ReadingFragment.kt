@@ -8,13 +8,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.LoadState
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.content_feed.R
 import com.example.content_feed.databinding.FragmentReadingBinding
+import com.example.content_feed.ui.adapter.ArticleLoadStateAdapter
+import com.example.content_feed.ui.adapter.ArticlePagingAdapter
 import com.example.content_feed.util.NetworkUtil
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,6 +37,7 @@ class ReadingFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ReadingViewModel by viewModels()
+    private lateinit var articleAdapter: ArticlePagingAdapter
 
     private val requestLocationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -53,9 +64,77 @@ class ReadingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupRecyclerView()
         setupWeatherObserver()
+        setupArticlesObserver()
         if (checkNetworkAndHandleOffline()) {
             checkAndRequestLocationPermission()
+        }
+    }
+
+    private fun setupRecyclerView() {
+        articleAdapter = ArticlePagingAdapter { _ ->
+            // Save button click
+        }
+
+        binding.rvReadingContent.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvReadingContent.adapter = articleAdapter.withLoadStateFooter(
+            footer = ArticleLoadStateAdapter()
+        )
+
+        articleAdapter.addLoadStateListener { loadState ->
+            val appendState = loadState.append
+
+            when {
+                appendState is LoadState.Error -> {
+                    // Pagination Error: Show blank RecyclerView and alert
+                    binding.rvReadingContent.visibility = View.INVISIBLE
+                    val errorMsg = appendState.error.localizedMessage ?: getString(R.string.pagination_error)
+                    showPaginationAlertDialog(
+                        title = "Error",
+                        message = errorMsg,
+                        positiveButtonText = "OK"
+                    )
+                }
+                appendState.endOfPaginationReached && articleAdapter.itemCount > 0 -> {
+                    // No more data: Show blank RecyclerView and alert
+                    binding.rvReadingContent.visibility = View.INVISIBLE
+                    showPaginationAlertDialog(
+                        title = "Notice",
+                        message = getString(R.string.pagination_no_more),
+                        positiveButtonText = "OK"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun showPaginationAlertDialog(
+        title: String,
+        message: String,
+        positiveButtonText: String,
+        onPositiveClick: (() -> Unit)? = null
+    ) {
+        if (!isAdded || activity?.isFinishing == true) return
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonText) { dialog, _ ->
+                dialog.dismiss()
+                onPositiveClick?.invoke()
+            }
+            .setCancelable(true)
+            .show()
+    }
+
+    private fun setupArticlesObserver() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.articlesPagingData.collectLatest { pagingData ->
+                    articleAdapter.submitData(pagingData)
+                }
+            }
         }
     }
 

@@ -62,6 +62,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.fragment.ktx)
 
+    // Paging 3
+    implementation(libs.androidx.paging.runtime)
+
+    // Glide
+    implementation(libs.glide)
+
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

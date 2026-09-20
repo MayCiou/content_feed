@@ -1,11 +1,17 @@
 package com.example.content_feed.data.repository
 
+import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.example.content_feed.data.local.ArticleRefreshDao
 import com.example.content_feed.data.local.ArticleRefreshEntity
 import com.example.content_feed.data.model.ArticleItem
+import com.example.content_feed.data.paging.ArticlePagingSource
 import com.example.content_feed.data.remote.SpaceflightApiService
 import com.example.content_feed.data.remote.model.ArticleDto
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -23,10 +29,21 @@ class ArticleRepository @Inject constructor(
         private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss"
     }
 
+    fun getArticlesStream(): Flow<PagingData<ArticleItem>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = ArticlePagingSource.PAGE_SIZE,
+                enablePlaceholders = false,
+                prefetchDistance = 2
+            ),
+            pagingSourceFactory = { ArticlePagingSource(this) }
+        ).flow
+    }
+
     suspend fun getArticles(limit: Int = 10, offset: Int = 0): List<ArticleItem> {
         return withContext(Dispatchers.IO) {
             val response = spaceflightApiService.getArticles(limit = limit, offset = offset)
-
+            Log.d("getArticles","response: $response")
             val currentTime = System.currentTimeMillis()
             val dateFormat = SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.getDefault())
             val formattedTime = dateFormat.format(Date(currentTime))
