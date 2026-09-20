@@ -9,6 +9,7 @@ interface SpaceflightApiService {
     @GET("v4/articles/")
     suspend fun getArticles(
         @Query("limit") limit: Int = 10,
-        @Query("offset") offset: Int = 0
+        @Query("offset") offset: Int = 0,
+        @Query("published_at_lt") publishedAtLt: String? = null
     ): ArticleListResponse
 }

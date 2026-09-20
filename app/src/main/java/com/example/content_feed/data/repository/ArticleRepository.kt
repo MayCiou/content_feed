@@ -85,7 +85,8 @@ class ArticleRepository @Inject constructor(
 
     suspend fun getArticles(
         limit: Int = ArticlePagingSource.PAGE_SIZE,
-        offset: Int = 0
+        offset: Int = 0,
+        publishedAtLt: String? = null
     ): List<ArticleItem> {
         return withContext(Dispatchers.IO) {
 
@@ -97,11 +98,12 @@ class ArticleRepository @Inject constructor(
                     val response = apiMutex.withLock {
                         throttleRequestInterval()
 
-                        Log.d(TAG, "Requesting articles: limit=$limit, offset=$offset")
+                        Log.d(TAG, "Requesting articles: limit=$limit, offset=$offset, publishedAtLt=$publishedAtLt")
 
                         spaceflightApiService.getArticles(
                             limit = limit,
-                            offset = offset
+                            offset = offset,
+                            publishedAtLt = publishedAtLt
                         )
                     }
 
@@ -115,7 +117,7 @@ class ArticleRepository @Inject constructor(
                         dto.toArticleEntity()
                     }
 
-                    if (offset == 0) {
+                    if (offset == 0 && publishedAtLt == null) {
                         articleDao.clearAll()
                     }
                     articleDao.insertArticles(articleEntities)
@@ -155,6 +157,12 @@ class ArticleRepository @Inject constructor(
             }
 
             throw lastException ?: IllegalStateException("Unexpected API retry termination")
+        }
+    }
+
+    suspend fun getOldestPublishedAt(): String? {
+        return withContext(Dispatchers.IO) {
+            articleDao.getOldestPublishedAt()
         }
     }
 

@@ -11,6 +11,9 @@ interface ArticleDao {
     @Query("SELECT * FROM articles ORDER BY publishedAt ASC")
     suspend fun getAllArticlesAsc(): List<ArticleEntity>
 
+    @Query("SELECT MIN(publishedAt) FROM articles")
+    suspend fun getOldestPublishedAt(): String?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArticles(articles: List<ArticleEntity>)
 

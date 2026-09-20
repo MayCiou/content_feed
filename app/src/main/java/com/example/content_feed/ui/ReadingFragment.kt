@@ -18,6 +18,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.content_feed.R
 import com.example.content_feed.databinding.FragmentReadingBinding
 import com.example.content_feed.ui.adapter.ArticleLoadStateAdapter
@@ -159,22 +160,8 @@ class ReadingFragment : Fragment() {
     private fun setupArticlesObserver() {
         if (articlesJob != null) return
         articlesJob = viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.articleUiState.collectLatest { state ->
-                when (state) {
-                    is ReadingViewModel.ArticleUiState.Initial -> {
-                        viewModel.loadInitialArticles()
-                    }
-                    is ReadingViewModel.ArticleUiState.LocalCache -> {
-                        showArticlesLoading(false)
-                        val pagingData = PagingData.from(state.articles)
-                        articleAdapter.submitData(pagingData)
-                    }
-                    is ReadingViewModel.ArticleUiState.PagingApi -> {
-                        viewModel.articlesPagingData.collectLatest { pagingData ->
-                            articleAdapter.submitData(pagingData)
-                        }
-                    }
-                }
+            viewModel.articlesPagingData.collectLatest { pagingData ->
+                articleAdapter.submitData(pagingData)
             }
         }
     }
