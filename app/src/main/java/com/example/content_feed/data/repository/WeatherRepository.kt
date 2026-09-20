@@ -4,6 +4,9 @@ import android.content.Context
 import android.location.Address
 import android.location.Geocoder
 import android.os.Build
+import android.util.Log
+import com.example.content_feed.data.local.WeatherDao
+import com.example.content_feed.data.local.WeatherEntity
 import com.example.content_feed.data.remote.OpenMeteoApiService
 import com.example.content_feed.ui.WeatherUiState
 import com.example.content_feed.util.NetworkUtil
@@ -11,6 +14,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,16 +25,36 @@ import kotlin.math.roundToInt
 @Singleton
 class WeatherRepository @Inject constructor(
     private val apiService: OpenMeteoApiService,
+    private val weatherDao: WeatherDao,
     private val networkUtil: NetworkUtil,
     @param:ApplicationContext private val context: Context
 ) {
 
+    companion object {
+        private const val TAG = "WeatherRepository"
+        private const val CACHE_VALID_DURATION_MS = 10 * 60 * 1000L // 10 minutes
+        private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss"
+    }
+
     suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherUiState {
         if (!networkUtil.isNetworkAvailable()) {
+            Log.d(TAG, "Network unavailable.")
             return WeatherUiState.LocationUnavailable
         }
 
         return withContext(Dispatchers.IO) {
+            val cachedWeather = weatherDao.getLatestWeather()
+            val currentTime = System.currentTimeMillis()
+
+            if (cachedWeather != null && (currentTime - cachedWeather.lastFetchedTimestamp) < CACHE_VALID_DURATION_MS) {
+                Log.d(TAG, "Using cached weather data from ${cachedWeather.lastFetchedTime}")
+                return@withContext WeatherUiState.Success(
+                    city = cachedWeather.city,
+                    temperature = cachedWeather.temperature,
+                    weatherInfo = cachedWeather.weatherInfo
+                )
+            }
+
             try {
                 val response = apiService.getForecast(
                     latitude = latitude,
@@ -53,12 +78,27 @@ class WeatherRepository @Inject constructor(
 
                 val cityName = resolveCityName(latitude, longitude) ?: "Taipei"
 
+                val dateFormat = SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.getDefault())
+                val formattedTime = dateFormat.format(Date(currentTime))
+
+                val weatherEntity = WeatherEntity(
+                    id = 1,
+                    city = cityName,
+                    temperature = temperatureText,
+                    weatherInfo = weatherInfoText,
+                    lastFetchedTime = formattedTime,
+                    lastFetchedTimestamp = currentTime
+                )
+                weatherDao.insertWeather(weatherEntity)
+                Log.d(TAG, "Saved weather data to Room at $formattedTime")
+
                 WeatherUiState.Success(
                     city = cityName,
                     temperature = temperatureText,
                     weatherInfo = weatherInfoText
                 )
             } catch (e: Exception) {
+                Log.e(TAG, "Error fetching weather data: ${e.message}", e)
                 WeatherUiState.LocationUnavailable
             }
         }
