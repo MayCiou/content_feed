@@ -6,8 +6,10 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.content_feed.R
 import com.example.content_feed.data.model.ArticleItem
 import com.example.content_feed.databinding.ArticleItemBinding
@@ -53,6 +55,9 @@ class ArticlePagingAdapter(
                 .load(glideUrl)
                 .placeholder(R.drawable.sl_nav_item_bg)
                 .error(R.drawable.ic_cloud_off)
+                .override(75, 75)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .transition(DrawableTransitionOptions.withCrossFade(200))
                 .centerCrop()
                 .into(binding.ivArticle)
 

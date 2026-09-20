@@ -77,10 +77,14 @@ class ReadingFragment : Fragment() {
             // Save button click
         }
 
-        binding.rvReadingContent.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvReadingContent.adapter = articleAdapter.withLoadStateFooter(
-            footer = ArticleLoadStateAdapter()
-        )
+        binding.rvReadingContent.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            setHasFixedSize(true)
+            setItemViewCacheSize(10)
+            adapter = articleAdapter.withLoadStateFooter(
+                footer = ArticleLoadStateAdapter()
+            )
+        }
 
         articleAdapter.addLoadStateListener { loadState ->
             val appendState = loadState.append
