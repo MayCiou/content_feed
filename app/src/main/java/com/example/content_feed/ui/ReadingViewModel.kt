@@ -6,13 +6,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.content_feed.data.repository.LocationRepository
+import com.example.content_feed.data.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ReadingViewModel @Inject constructor(
-    private val locationRepository: LocationRepository
+    private val locationRepository: LocationRepository,
+    private val weatherRepository: WeatherRepository
 ) : ViewModel() {
 
     private val _weatherUiState = MutableLiveData<WeatherUiState>()
@@ -29,12 +31,8 @@ class ReadingViewModel @Inject constructor(
                 val lat = location.latitude
                 val lng = location.longitude
                 Log.d("ReadingViewModel", "Location acquired: Lat=$lat, Lng=$lng")
-                // Simulated weather data for demonstration
-                _weatherUiState.value = WeatherUiState.Success(
-                    city = "Taipei",
-                    temperature = "34°",
-                    weatherInfo = "Partly cloudy · H:35° L:28°"
-                )
+                val state = weatherRepository.getWeatherData(lat, lng)
+                _weatherUiState.value = state
             } else {
                 Log.d("ReadingViewModel", "Unable to get location.")
                 _weatherUiState.value = WeatherUiState.LocationUnavailable
