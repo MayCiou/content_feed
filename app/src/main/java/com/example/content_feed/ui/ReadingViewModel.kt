@@ -19,18 +19,18 @@ class ReadingViewModel @Inject constructor(
     val apiLoadingStatus: LiveData<String> = _apiLoadingStatus
 
     fun fetchDataWithLocation() {
-        _apiLoadingStatus.value = "定位中..."
+        _apiLoadingStatus.value = "Locating..."
         viewModelScope.launch {
             val location = locationRepository.getCurrentLocation()
             if (location != null) {
                 val lat = location.latitude
                 val lng = location.longitude
-                // 模擬在此處使用經緯度呼叫 API，數值完全不暴露給 View 層
-                Log.d("ReadingViewModel", "成功取得經緯度，內部呼叫 API: 緯度=$lat, 經度=$lng")
-                _apiLoadingStatus.value = "成功取得位置，API 呼叫完成"
+                // Simulate calling API with coordinates here, values are not exposed to the View layer
+                Log.d("ReadingViewModel", "Location acquired, calling API internally: Lat=$lat, Lng=$lng")
+                _apiLoadingStatus.value = "Location acquired, API call completed."
             } else {
-                Log.d("ReadingViewModel", "無法取得定位，使用預設位置呼叫 API")
-                _apiLoadingStatus.value = "定位失敗，已使用備用方案"
+                Log.d("ReadingViewModel", "Unable to get location, using default location for API call.")
+                _apiLoadingStatus.value = "Location failed, fallback used."
             }
         }
     }

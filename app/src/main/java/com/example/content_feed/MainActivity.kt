@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupFragments(savedInstanceState)
-        // 初始化導航欄切換邏輯
+        // Initialize navigation bar switching logic
         setupNavigation()
     }
 
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             readingFragment = supportFragmentManager.findFragmentByTag("reading") as? ReadingFragment
             savedFragment = supportFragmentManager.findFragmentByTag("saved") as? SavedFragment
             
-            // 找出當前顯示的是哪一個
+            // Determine which one is currently displayed
             activeFragment = if (readingFragment?.isHidden == false) readingFragment else savedFragment
         }
     }
@@ -61,11 +61,11 @@ class MainActivity : AppCompatActivity() {
         val navReading = findViewById<ViewGroup>(R.id.navReading)
         val navSaved = findViewById<ViewGroup>(R.id.navSaved)
         
-        // 獲取內部的 FrameLayout (它們是 LinearLayout 的第一個子 View)
+        // Get internal FrameLayout (they are the first child View of LinearLayout)
         val containerReading = navReading.getChildAt(0)
         val containerSaved = navSaved.getChildAt(0)
 
-        // 根據 activeFragment 設定初始選中狀態
+        // Set initial selected state based on activeFragment
         containerReading.isSelected = activeFragment == readingFragment
         containerSaved.isSelected = activeFragment == savedFragment
 

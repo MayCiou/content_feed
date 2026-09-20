@@ -26,19 +26,19 @@ class ReadingFragment : Fragment(R.layout.fragment_reading) {
         if (fineGranted || coarseGranted) {
             viewModel.fetchDataWithLocation()
         } else {
-            Toast.makeText(requireContext(), "權限被拒絕，無法讀取精確定位", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Permission denied, unable to get precise location.", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 觀察 API 載入狀態，純粹用於 UI 回饋（不包含經緯度敏感資訊）
+        // Observe API loading status, purely for UI feedback (does not include sensitive location data)
         viewModel.apiLoadingStatus.observe(viewLifecycleOwner) { status ->
             Toast.makeText(requireContext(), status, Toast.LENGTH_SHORT).show()
         }
 
-        // 自動觸發權限檢查並取得定位
+        // Trigger permission check and get location automatically
         checkAndRequestLocationPermission()
     }
 
