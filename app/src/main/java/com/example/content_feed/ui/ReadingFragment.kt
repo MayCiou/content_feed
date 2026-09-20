@@ -38,7 +38,6 @@ class ReadingFragment : Fragment(R.layout.fragment_reading) {
             Toast.makeText(requireContext(), status, Toast.LENGTH_SHORT).show()
         }
 
-        // Trigger permission check and get location automatically
         checkAndRequestLocationPermission()
     }
 

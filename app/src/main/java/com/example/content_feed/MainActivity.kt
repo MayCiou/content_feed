@@ -33,7 +33,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupFragments(savedInstanceState)
-        // Initialize navigation bar switching logic
         setupNavigation()
     }
 
@@ -64,8 +63,7 @@ class MainActivity : AppCompatActivity() {
         // Get internal FrameLayout (they are the first child View of LinearLayout)
         val containerReading = navReading.getChildAt(0)
         val containerSaved = navSaved.getChildAt(0)
-
-        // Set initial selected state based on activeFragment
+        
         containerReading.isSelected = activeFragment == readingFragment
         containerSaved.isSelected = activeFragment == savedFragment
 

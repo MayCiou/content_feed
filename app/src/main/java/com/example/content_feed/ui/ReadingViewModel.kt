@@ -25,7 +25,7 @@ class ReadingViewModel @Inject constructor(
             if (location != null) {
                 val lat = location.latitude
                 val lng = location.longitude
-                // Simulate calling API with coordinates here, values are not exposed to the View layer
+            
                 Log.d("ReadingViewModel", "Location acquired, calling API internally: Lat=$lat, Lng=$lng")
                 _apiLoadingStatus.value = "Location acquired, API call completed."
             } else {
