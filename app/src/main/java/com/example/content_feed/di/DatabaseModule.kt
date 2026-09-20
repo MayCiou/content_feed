@@ -3,6 +3,7 @@ package com.example.content_feed.di
 import android.content.Context
 import androidx.room.Room
 import com.example.content_feed.data.local.AppDatabase
+import com.example.content_feed.data.local.ArticleDao
 import com.example.content_feed.data.local.ArticleRefreshDao
 import com.example.content_feed.data.local.WeatherDao
 import dagger.Module
@@ -36,5 +37,10 @@ object DatabaseModule {
     @Provides
     fun provideArticleRefreshDao(appDatabase: AppDatabase): ArticleRefreshDao {
         return appDatabase.articleRefreshDao()
+    }
+
+    @Provides
+    fun provideArticleDao(appDatabase: AppDatabase): ArticleDao {
+        return appDatabase.articleDao()
     }
 }
