@@ -11,9 +11,7 @@ class ArticlePagingSource(
 ) : PagingSource<Int, ArticleItem>() {
 
     companion object {
-
-        private const val TAG = "ArticlePagingSource"
-        const val PAGE_SIZE = 10
+        const val PAGE_SIZE = 20
     }
 
     override fun getRefreshKey(state: PagingState<Int, ArticleItem>): Int? {
@@ -38,7 +36,6 @@ class ArticlePagingSource(
                 nextKey = nextKey
             )
         } catch (e: Exception) {
-            Log.d(TAG, "error: $e")
             LoadResult.Error(e)
         }
     }

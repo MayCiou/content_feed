@@ -42,24 +42,22 @@ class ArticlePagingAdapter(
             binding.btnSave.isSelected = item.isSaved
 
             val formattedUrl = item.imageUrl.replace("http://", "https://")
-            val glideUrl = if (formattedUrl.isNotBlank()) {
-                GlideUrl(
-                    formattedUrl,
-                    LazyHeaders.Builder()
-                        .addHeader("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0")
-                        .build()
-                )
-            } else null
 
-            Glide.with(binding.ivArticle.context)
-                .load(glideUrl)
-                .placeholder(R.drawable.sl_nav_item_bg)
-                .error(R.drawable.ic_cloud_off)
-                .override(75, 75)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .transition(DrawableTransitionOptions.withCrossFade(200))
-                .centerCrop()
-                .into(binding.ivArticle)
+            Glide.with(binding.ivArticle)
+                .clear(binding.ivArticle)
+
+            if (formattedUrl.isBlank()) {
+                binding.ivArticle.setImageResource(R.drawable.ic_cloud_off)
+            } else {
+                Glide.with(binding.ivArticle)
+                    .load(formattedUrl)
+                    .placeholder(R.drawable.sl_nav_item_bg)
+                    .error(R.drawable.ic_cloud_off)
+                    .override(200, 200)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .centerCrop()
+                    .into(binding.ivArticle)
+            }
 
             binding.btnSave.setOnClickListener {
                 onSaveClick(item)
