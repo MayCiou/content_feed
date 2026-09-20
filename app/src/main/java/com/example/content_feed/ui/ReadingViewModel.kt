@@ -25,6 +25,7 @@ class ReadingViewModel @Inject constructor(
     }
 
     fun fetchDataWithLocation() {
+        _weatherUiState.value = WeatherUiState.Loading
         viewModelScope.launch {
             val location = locationRepository.getCurrentLocation()
             if (location != null) {

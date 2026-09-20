@@ -18,6 +18,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardWeatherLoading"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/layoutWeatherCard"
+        app:layout_constraintEnd_toEndOf="@id/layoutWeatherCard"
+        app:layout_constraintStart_toStartOf="@id/layoutWeatherCard"
+        app:layout_constraintTop_toTopOf="@id/layoutWeatherCard"
+        tools:visibility="visible">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#2E7D32">
+
+            <View
+                android:id="@+id/viewWeatherLoadingGradient"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/weather_loading_gradient" />
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvReadingContent"
         android:layout_width="0dp"

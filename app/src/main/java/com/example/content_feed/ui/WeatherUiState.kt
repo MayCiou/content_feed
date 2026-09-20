@@ -1,6 +1,8 @@
 package com.example.content_feed.ui
 
 sealed class WeatherUiState {
+    object Loading : WeatherUiState()
+
     data class Success(
         val city: String,
         val temperature: String,

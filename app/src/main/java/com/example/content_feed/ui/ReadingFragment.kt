@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -56,7 +57,11 @@ class ReadingFragment : Fragment() {
 
         viewModel.weatherUiState.observe(viewLifecycleOwner) { state ->
             when (state) {
+                is WeatherUiState.Loading -> {
+                    showWeatherLoading(isLoading = true)
+                }
                 is WeatherUiState.Success -> {
+                    showWeatherLoading(isLoading = false)
                     weatherBinding.groupWeatherContent.visibility = View.VISIBLE
                     weatherBinding.layoutStatusNotice.visibility = View.GONE
                     weatherBinding.tvCity.text = state.city
@@ -64,6 +69,7 @@ class ReadingFragment : Fragment() {
                     weatherBinding.tvWeatherInfo.text = state.weatherInfo
                 }
                 is WeatherUiState.PermissionDenied -> {
+                    showWeatherLoading(isLoading = false)
                     weatherBinding.groupWeatherContent.visibility = View.GONE
                     weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
                     weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_cloud_off)
@@ -71,6 +77,7 @@ class ReadingFragment : Fragment() {
                     weatherBinding.tvStatusDescription.setText(R.string.weather_permission_needed_desc)
                 }
                 is WeatherUiState.LocationUnavailable -> {
+                    showWeatherLoading(isLoading = false)
                     weatherBinding.groupWeatherContent.visibility = View.GONE
                     weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
                     weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_cloud_off)
@@ -78,6 +85,17 @@ class ReadingFragment : Fragment() {
                     weatherBinding.tvStatusDescription.setText(R.string.weather_location_unavailable_desc)
                 }
             }
+        }
+    }
+
+    private fun showWeatherLoading(isLoading: Boolean) {
+        if (isLoading) {
+            binding.cardWeatherLoading.visibility = View.VISIBLE
+            val shimmerAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.weather_loading_shimmer)
+            binding.viewWeatherLoadingGradient.startAnimation(shimmerAnimation)
+        } else {
+            binding.viewWeatherLoadingGradient.clearAnimation()
+            binding.cardWeatherLoading.visibility = View.GONE
         }
     }
 
