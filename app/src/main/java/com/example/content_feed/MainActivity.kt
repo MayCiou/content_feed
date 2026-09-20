@@ -12,6 +12,9 @@ import androidx.fragment.app.Fragment
 import com.example.content_feed.ui.ReadingFragment
 import com.example.content_feed.ui.SavedFragment
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private var readingFragment: ReadingFragment? = null
