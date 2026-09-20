@@ -1,6 +1,7 @@
 package com.example.content_feed.di
 
 import com.example.content_feed.data.remote.OpenMeteoApiService
+import com.example.content_feed.data.remote.SpaceflightApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val OPEN_METEO_BASE_URL = "https://api.open-meteo.com/"
+    private const val SPACEFLIGHT_BASE_URL = "https://api.spaceflightnewsapi.net/"
 
     @Provides
     @Singleton
@@ -40,5 +42,16 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(OpenMeteoApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSpaceflightApiService(okHttpClient: OkHttpClient): SpaceflightApiService {
+        return Retrofit.Builder()
+            .baseUrl(SPACEFLIGHT_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SpaceflightApiService::class.java)
     }
 }
