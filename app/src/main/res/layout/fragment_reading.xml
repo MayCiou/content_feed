@@ -59,4 +59,35 @@
         app:layout_constraintTop_toBottomOf="@id/layoutWeatherCard"
         tools:listitem="@layout/article_item" />
 
+    <!-- Articles Initial Shimmer Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/layoutArticlesLoading"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutWeatherCard"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingTop="8dp">
+
+            <include layout="@layout/item_article_shimmer" />
+            <include layout="@layout/item_article_shimmer" />
+            <include layout="@layout/item_article_shimmer" />
+            <include layout="@layout/item_article_shimmer" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/viewArticlesLoadingGradient"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/weather_loading_gradient" />
+    </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

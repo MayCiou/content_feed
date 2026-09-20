@@ -87,6 +87,15 @@ class ReadingFragment : Fragment() {
         }
 
         articleAdapter.addLoadStateListener { loadState ->
+            val refreshState = loadState.refresh
+
+            // Control initial articles loading shimmer
+            if (refreshState is LoadState.Loading && articleAdapter.itemCount == 0) {
+                showArticlesLoading(true)
+            } else {
+                showArticlesLoading(false)
+            }
+
             val appendState = loadState.append
 
             when {
@@ -110,6 +119,17 @@ class ReadingFragment : Fragment() {
                     )
                 }
             }
+        }
+    }
+
+    private fun showArticlesLoading(isLoading: Boolean) {
+        if (isLoading) {
+            binding.layoutArticlesLoading.visibility = View.VISIBLE
+            val shimmerAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.weather_loading_shimmer)
+            binding.viewArticlesLoadingGradient.startAnimation(shimmerAnimation)
+        } else {
+            binding.viewArticlesLoadingGradient.clearAnimation()
+            binding.layoutArticlesLoading.visibility = View.GONE
         }
     }
 
@@ -166,6 +186,7 @@ class ReadingFragment : Fragment() {
             true
         } else {
             showWeatherLoading(isLoading = false)
+            showArticlesLoading(isLoading = false)
             _binding?.layoutWeatherCard?.root?.visibility = View.GONE
             _binding?.rvReadingContent?.visibility = View.GONE
             false
