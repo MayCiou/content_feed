@@ -154,9 +154,7 @@ class ReadingFragment : Fragment() {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
-            if (checkNetworkAndHandleOffline()) {
-                checkAndRequestLocationPermission()
-            }
+            checkNetworkAndHandleOffline()
         }
     }
 
