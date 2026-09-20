@@ -1,5 +1,6 @@
 package com.example.content_feed.ui.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
@@ -40,21 +41,44 @@ class ArticlePagingAdapter(
             binding.tvTitle.text = item.title
             binding.tvPublishedDate.text = item.publishedDate
             binding.btnSave.isSelected = item.isSaved
-            
-            val imageUrl = item.imageUrl
+
+            Log.d(
+                "ArticleViewHolder",
+                "id=${item.title}, imageUrl=${item.imageUrl}"
+            )
 
             Glide.with(binding.ivArticle)
                 .clear(binding.ivArticle)
+
+            val imageUrl = item.imageUrl
+                .trim()
+                .let { url ->
+                    if (url.startsWith("http://")) {
+                        url.replaceFirst("http://", "https://")
+                    } else {
+                        url
+                    }
+                }
 
             if (imageUrl.isBlank()) {
                 binding.ivArticle.setImageResource(R.drawable.ic_cloud_off)
             } else {
                 Glide.with(binding.ivArticle)
-                    .load(imageUrl)
+                    .load(GlideUrl(
+                        imageUrl,
+                        LazyHeaders.Builder()
+                            .addHeader(
+                                "User-Agent",
+                                "Mozilla/5.0 (Android; Mobile)"
+                            )
+                            .build()
+                    ))
                     .placeholder(R.drawable.sl_nav_item_bg)
+                    .error(R.drawable.ic_cloud_off)
                     .override(200, 200)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .centerCrop()
+                    .dontAnimate()
                     .into(binding.ivArticle)
             }
 
