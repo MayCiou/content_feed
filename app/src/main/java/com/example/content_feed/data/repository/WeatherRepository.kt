@@ -39,7 +39,7 @@ class WeatherRepository @Inject constructor(
     suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherUiState {
         if (!networkUtil.isNetworkAvailable()) {
             Log.d(TAG, "Network unavailable.")
-            return WeatherUiState.LocationUnavailable
+            return WeatherUiState.NetworkUnavailable
         }
 
         return withContext(Dispatchers.IO) {

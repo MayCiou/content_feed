@@ -84,6 +84,14 @@ class ReadingFragment : Fragment() {
                     weatherBinding.tvStatusTitle.setText(R.string.weather_location_unavailable_title)
                     weatherBinding.tvStatusDescription.setText(R.string.weather_location_unavailable_desc)
                 }
+                is WeatherUiState.NetworkUnavailable -> {
+                    showWeatherLoading(isLoading = false)
+                    weatherBinding.groupWeatherContent.visibility = View.GONE
+                    weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
+                    weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_wifi_off)
+                    weatherBinding.tvStatusTitle.setText(R.string.weather_network_unavailable_title)
+                    weatherBinding.tvStatusDescription.setText(R.string.weather_network_unavailable_desc)
+                }
             }
         }
     }

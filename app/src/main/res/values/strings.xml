@@ -7,4 +7,6 @@
     <string name="weather_permission_needed_desc">Allow location access to see your local weather</string>
     <string name="weather_location_unavailable_title">Unable to Get Location</string>
     <string name="weather_location_unavailable_desc">Please ensure GPS is enabled and check your network connection</string>
+    <string name="weather_network_unavailable_title">No Internet Connection</string>
+    <string name="weather_network_unavailable_desc">Please check your network settings and try again</string>
 </resources>
