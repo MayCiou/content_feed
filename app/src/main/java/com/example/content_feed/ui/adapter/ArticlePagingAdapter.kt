@@ -40,19 +40,18 @@ class ArticlePagingAdapter(
             binding.tvTitle.text = item.title
             binding.tvPublishedDate.text = item.publishedDate
             binding.btnSave.isSelected = item.isSaved
-
-            val formattedUrl = item.imageUrl.replace("http://", "https://")
+            
+            val imageUrl = item.imageUrl
 
             Glide.with(binding.ivArticle)
                 .clear(binding.ivArticle)
 
-            if (formattedUrl.isBlank()) {
+            if (imageUrl.isBlank()) {
                 binding.ivArticle.setImageResource(R.drawable.ic_cloud_off)
             } else {
                 Glide.with(binding.ivArticle)
-                    .load(formattedUrl)
+                    .load(imageUrl)
                     .placeholder(R.drawable.sl_nav_item_bg)
-                    .error(R.drawable.ic_cloud_off)
                     .override(200, 200)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .centerCrop()
