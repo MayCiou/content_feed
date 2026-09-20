@@ -23,7 +23,7 @@ class LocationRepository @Inject constructor(
             try {
                 withTimeoutOrNull(5_000L) {
                     fusedLocationClient.getCurrentLocation(
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                        Priority.PRIORITY_HIGH_ACCURACY,
                         cts.token
                     ).await()
                 }
