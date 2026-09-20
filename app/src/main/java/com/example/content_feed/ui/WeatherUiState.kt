@@ -11,5 +11,4 @@ sealed class WeatherUiState {
 
     object PermissionDenied : WeatherUiState()
     object LocationUnavailable : WeatherUiState()
-    object NetworkUnavailable : WeatherUiState()
 }

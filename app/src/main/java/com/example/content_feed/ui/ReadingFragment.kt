@@ -13,10 +13,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.content_feed.R
 import com.example.content_feed.databinding.FragmentReadingBinding
+import com.example.content_feed.util.NetworkUtil
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ReadingFragment : Fragment() {
+
+    @Inject
+    lateinit var networkUtil: NetworkUtil
 
     private var _binding: FragmentReadingBinding? = null
     private val binding get() = _binding!!
@@ -49,7 +54,41 @@ class ReadingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupWeatherObserver()
-        checkAndRequestLocationPermission()
+        if (checkNetworkAndHandleOffline()) {
+            checkAndRequestLocationPermission()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isHidden) {
+            if (checkNetworkAndHandleOffline()) {
+                checkAndRequestLocationPermission()
+            }
+        }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            if (checkNetworkAndHandleOffline()) {
+                checkAndRequestLocationPermission()
+            }
+        }
+    }
+
+    private fun checkNetworkAndHandleOffline(): Boolean {
+        val isConnected = networkUtil.isNetworkAvailable()
+        return if (isConnected) {
+            _binding?.layoutWeatherCard?.root?.visibility = View.VISIBLE
+            _binding?.rvReadingContent?.visibility = View.VISIBLE
+            true
+        } else {
+            showWeatherLoading(isLoading = false)
+            _binding?.layoutWeatherCard?.root?.visibility = View.GONE
+            _binding?.rvReadingContent?.visibility = View.GONE
+            false
+        }
     }
 
     private fun setupWeatherObserver() {
@@ -58,10 +97,12 @@ class ReadingFragment : Fragment() {
         viewModel.weatherUiState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is WeatherUiState.Loading -> {
+                    weatherBinding.root.visibility = View.VISIBLE
                     showWeatherLoading(isLoading = true)
                 }
                 is WeatherUiState.Success -> {
                     showWeatherLoading(isLoading = false)
+                    weatherBinding.root.visibility = View.VISIBLE
                     weatherBinding.groupWeatherContent.visibility = View.VISIBLE
                     weatherBinding.layoutStatusNotice.visibility = View.GONE
                     weatherBinding.tvCity.text = state.city
@@ -70,6 +111,7 @@ class ReadingFragment : Fragment() {
                 }
                 is WeatherUiState.PermissionDenied -> {
                     showWeatherLoading(isLoading = false)
+                    weatherBinding.root.visibility = View.VISIBLE
                     weatherBinding.groupWeatherContent.visibility = View.GONE
                     weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
                     weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_cloud_off)
@@ -78,19 +120,12 @@ class ReadingFragment : Fragment() {
                 }
                 is WeatherUiState.LocationUnavailable -> {
                     showWeatherLoading(isLoading = false)
+                    weatherBinding.root.visibility = View.VISIBLE
                     weatherBinding.groupWeatherContent.visibility = View.GONE
                     weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
                     weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_cloud_off)
                     weatherBinding.tvStatusTitle.setText(R.string.weather_location_unavailable_title)
                     weatherBinding.tvStatusDescription.setText(R.string.weather_location_unavailable_desc)
-                }
-                is WeatherUiState.NetworkUnavailable -> {
-                    showWeatherLoading(isLoading = false)
-                    weatherBinding.groupWeatherContent.visibility = View.GONE
-                    weatherBinding.layoutStatusNotice.visibility = View.VISIBLE
-                    weatherBinding.ivStatusIcon.setImageResource(R.drawable.ic_wifi_off)
-                    weatherBinding.tvStatusTitle.setText(R.string.weather_network_unavailable_title)
-                    weatherBinding.tvStatusDescription.setText(R.string.weather_network_unavailable_desc)
                 }
             }
         }

@@ -9,7 +9,6 @@ import com.example.content_feed.data.local.WeatherDao
 import com.example.content_feed.data.local.WeatherEntity
 import com.example.content_feed.data.remote.OpenMeteoApiService
 import com.example.content_feed.ui.WeatherUiState
-import com.example.content_feed.util.NetworkUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -26,7 +25,6 @@ import kotlin.math.roundToInt
 class WeatherRepository @Inject constructor(
     private val apiService: OpenMeteoApiService,
     private val weatherDao: WeatherDao,
-    private val networkUtil: NetworkUtil,
     @param:ApplicationContext private val context: Context
 ) {
 
@@ -37,11 +35,6 @@ class WeatherRepository @Inject constructor(
     }
 
     suspend fun getWeatherData(latitude: Double, longitude: Double): WeatherUiState {
-        if (!networkUtil.isNetworkAvailable()) {
-            Log.d(TAG, "Network unavailable.")
-            return WeatherUiState.NetworkUnavailable
-        }
-
         return withContext(Dispatchers.IO) {
             val cachedWeather = weatherDao.getLatestWeather()
             val currentTime = System.currentTimeMillis()

@@ -11,11 +11,15 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.content_feed.ui.ReadingFragment
 import com.example.content_feed.ui.SavedFragment
-
+import com.example.content_feed.util.NetworkUtil
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var networkUtil: NetworkUtil
 
     private var readingFragment: ReadingFragment? = null
     private var savedFragment: SavedFragment? = null
@@ -32,8 +36,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        updateOfflineBanner()
         setupFragments(savedInstanceState)
         setupNavigation()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateOfflineBanner()
+    }
+
+    fun updateOfflineBanner() {
+        val isOffline = !networkUtil.isNetworkAvailable()
+        findViewById<View>(R.id.layoutOfflineView)?.visibility = if (isOffline) View.VISIBLE else View.GONE
     }
 
     private fun setupFragments(savedInstanceState: Bundle?) {
@@ -86,7 +101,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun showFragment(fragment: Fragment?) {
         if (fragment == null || fragment == activeFragment) return
-        
+
+        updateOfflineBanner()
         supportFragmentManager.beginTransaction()
             .hide(activeFragment!!)
             .show(fragment)
