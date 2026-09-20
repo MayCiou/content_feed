@@ -3,6 +3,7 @@ package com.example.content_feed.di
 import android.content.Context
 import androidx.room.Room
 import com.example.content_feed.data.local.AppDatabase
+import com.example.content_feed.data.local.ArticleRefreshDao
 import com.example.content_feed.data.local.WeatherDao
 import dagger.Module
 import dagger.Provides
@@ -22,11 +23,18 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "content_feed_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
 
     @Provides
     fun provideWeatherDao(appDatabase: AppDatabase): WeatherDao {
         return appDatabase.weatherDao()
+    }
+
+    @Provides
+    fun provideArticleRefreshDao(appDatabase: AppDatabase): ArticleRefreshDao {
+        return appDatabase.articleRefreshDao()
     }
 }
