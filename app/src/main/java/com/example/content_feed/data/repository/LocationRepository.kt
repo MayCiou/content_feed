@@ -18,20 +18,19 @@ class LocationRepository @Inject constructor(
     @SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(): Location? {
         return try {
-            // 1. Try to get cached last known location first (almost instantaneous)
-            val lastLocation = fusedLocationClient.lastLocation.await()
-            if (lastLocation != null) {
-                return lastLocation
+            val cts = CancellationTokenSource()
+
+            try {
+                withTimeoutOrNull(5_000L) {
+                    fusedLocationClient.getCurrentLocation(
+                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                        cts.token
+                    ).await()
+                }
+            } finally {
+                cts.cancel()
             }
 
-            // 2. If no cache, request current location with balanced power accuracy and 5s timeout
-            withTimeoutOrNull(5000L) {
-                val cts = CancellationTokenSource()
-                fusedLocationClient.getCurrentLocation(
-                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                    cts.token
-                ).await()
-            }
         } catch (e: Exception) {
             null
         }
