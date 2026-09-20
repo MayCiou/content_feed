@@ -11,8 +11,10 @@ import com.example.content_feed.data.remote.OpenMeteoApiService
 import com.example.content_feed.ui.WeatherUiState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,11 +51,20 @@ class WeatherRepository @Inject constructor(
             }
 
             try {
-                val response = apiService.getForecast(
-                    latitude = latitude,
-                    longitude = longitude
-                )
+                // Parallelize weather API and city geocoder lookup
+                val weatherDeferred = async {
+                    apiService.getForecast(
+                        latitude = latitude,
+                        longitude = longitude
+                    )
+                }
+                val cityDeferred = async {
+                    withTimeoutOrNull(1200L) {
+                        resolveCityName(latitude, longitude)
+                    }
+                }
 
+                val response = weatherDeferred.await()
                 val current = response.current ?: return@withContext WeatherUiState.LocationUnavailable
                 val tempInt = current.temperature2m.roundToInt()
                 val temperatureText = "$tempInt°"
@@ -69,7 +80,7 @@ class WeatherRepository @Inject constructor(
                     weatherDesc
                 }
 
-                val cityName = resolveCityName(latitude, longitude) ?: "Unknown"
+                val cityName = cityDeferred.await() ?: "Unknown"
 
                 val dateFormat = SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.getDefault())
                 val formattedTime = dateFormat.format(Date(currentTime))
