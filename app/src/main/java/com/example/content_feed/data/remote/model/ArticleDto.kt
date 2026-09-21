@@ -18,6 +18,8 @@ data class ArticleDto(
     val id: Int,
     @SerializedName("title")
     val title: String,
+    @SerializedName("url")
+    val url: String?,
     @SerializedName("image_url")
     val imageUrl: String?,
     @SerializedName("published_at")

@@ -5,5 +5,6 @@ data class ArticleItem(
     val imageUrl: String,
     val title: String,
     val publishedDate: String,
+    val url: String = "",
     val isSaved: Boolean = false
 )

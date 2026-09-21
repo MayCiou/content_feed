@@ -76,8 +76,8 @@ class ReadingFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        articleAdapter = ArticlePagingAdapter { _ ->
-            // Save button click
+        articleAdapter = ArticlePagingAdapter { article ->
+            viewModel.toggleSaveArticle(article)
         }
 
         binding.rvReadingContent.apply {

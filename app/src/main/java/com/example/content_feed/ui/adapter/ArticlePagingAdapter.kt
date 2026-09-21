@@ -83,7 +83,8 @@ class ArticlePagingAdapter(
             }
 
             binding.btnSave.setOnClickListener {
-                onSaveClick(item)
+                binding.btnSave.isSelected = !binding.btnSave.isSelected
+                onSaveClick(item.copy(isSaved = binding.btnSave.isSelected))
             }
         }
     }

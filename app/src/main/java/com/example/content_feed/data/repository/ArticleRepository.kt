@@ -163,6 +163,52 @@ class ArticleRepository @Inject constructor(
         }
     }
 
+    suspend fun saveArticle(article: ArticleItem) {
+        withContext(Dispatchers.IO) {
+            val entity = ArticleEntity(
+                id = article.id,
+                imageUrl = article.imageUrl,
+                title = article.title,
+                publishedAt = article.publishedDate,
+                url = article.url,
+                isSaved = true
+            )
+            articleDao.insertArticle(entity)
+            articleDao.updateSavedStatus(article.id, true)
+            Log.d(TAG, "Article ${article.id} saved to Room")
+        }
+    }
+
+    suspend fun removeArticle(articleId: Int) {
+        withContext(Dispatchers.IO) {
+            articleDao.deleteArticleById(articleId)
+            Log.d(TAG, "Article $articleId deleted from Room")
+        }
+    }
+
+    suspend fun toggleSaveArticle(article: ArticleItem): Boolean {
+        return withContext(Dispatchers.IO) {
+            val currentSaved = articleDao.isArticleSaved(article.id) ?: article.isSaved
+            if (currentSaved) {
+                articleDao.deleteArticleById(article.id)
+                Log.d(TAG, "Article ${article.id} removed from Room")
+                false
+            } else {
+                val entity = ArticleEntity(
+                    id = article.id,
+                    imageUrl = article.imageUrl,
+                    title = article.title,
+                    publishedAt = article.publishedDate,
+                    url = article.url,
+                    isSaved = true
+                )
+                articleDao.insertArticle(entity)
+                Log.d(TAG, "Article ${article.id} saved to Room")
+                true
+            }
+        }
+    }
+
     suspend fun getOldestPublishedAt(): String? {
         return withContext(Dispatchers.IO) {
             articleDao.getOldestPublishedAt()
@@ -198,6 +244,7 @@ class ArticleRepository @Inject constructor(
             imageUrl = imageUrl.orEmpty(),
             title = title,
             publishedAt = publishedAt.orEmpty(),
+            url = url.orEmpty(),
             isSaved = isSaved
         )
     }
@@ -208,6 +255,7 @@ class ArticleRepository @Inject constructor(
             imageUrl = imageUrl,
             title = title,
             publishedDate = formatPublishedDate(publishedAt),
+            url = url,
             isSaved = isSaved
         )
     }

@@ -17,6 +17,21 @@ interface ArticleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertArticles(articles: List<ArticleEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertArticle(article: ArticleEntity)
+
+    @Query("UPDATE articles SET isSaved = :isSaved WHERE id = :articleId")
+    suspend fun updateSavedStatus(articleId: Int, isSaved: Boolean)
+
+    @Query("DELETE FROM articles WHERE id = :articleId")
+    suspend fun deleteArticleById(articleId: Int)
+
+    @Query("SELECT isSaved FROM articles WHERE id = :articleId LIMIT 1")
+    suspend fun isArticleSaved(articleId: Int): Boolean?
+
+    @Query("SELECT * FROM articles WHERE isSaved = 1 ORDER BY publishedAt DESC")
+    suspend fun getSavedArticles(): List<ArticleEntity>
+
     @Query("DELETE FROM articles")
     suspend fun clearAll()
 

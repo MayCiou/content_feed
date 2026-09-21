@@ -29,6 +29,12 @@ class ReadingViewModel @Inject constructor(
     private val _weatherUiState = MutableLiveData<WeatherUiState>()
     val weatherUiState: LiveData<WeatherUiState> = _weatherUiState
 
+    fun toggleSaveArticle(article: ArticleItem) {
+        viewModelScope.launch {
+            articleRepository.toggleSaveArticle(article)
+        }
+    }
+
     fun onPermissionDenied() {
         _weatherUiState.value = WeatherUiState.PermissionDenied
     }

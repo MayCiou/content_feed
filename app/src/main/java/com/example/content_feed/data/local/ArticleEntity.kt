@@ -10,5 +10,6 @@ data class ArticleEntity(
     val imageUrl: String,
     val title: String,
     val publishedAt: String,
+    val url: String = "",
     val isSaved: Boolean = false
 )
