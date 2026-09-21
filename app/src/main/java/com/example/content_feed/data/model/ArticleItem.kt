@@ -6,5 +6,6 @@ data class ArticleItem(
     val title: String,
     val publishedDate: String,
     val url: String = "",
+    val localHtmlPath: String? = null,
     val isSaved: Boolean = false
 )

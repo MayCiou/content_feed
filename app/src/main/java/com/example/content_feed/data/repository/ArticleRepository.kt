@@ -12,11 +12,11 @@ import com.example.content_feed.data.model.ArticleItem
 import com.example.content_feed.data.paging.ArticlePagingSource
 import com.example.content_feed.data.remote.SpaceflightApiService
 import com.example.content_feed.data.remote.model.ArticleDto
+import com.example.content_feed.util.HtmlStorageManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -31,7 +31,8 @@ import javax.inject.Singleton
 class ArticleRepository @Inject constructor(
     private val spaceflightApiService: SpaceflightApiService,
     private val articleRefreshDao: ArticleRefreshDao,
-    private val articleDao: ArticleDao
+    private val articleDao: ArticleDao,
+    private val htmlStorageManager: HtmlStorageManager
 ) {
 
     companion object {
@@ -165,24 +166,27 @@ class ArticleRepository @Inject constructor(
 
     suspend fun saveArticle(article: ArticleItem) {
         withContext(Dispatchers.IO) {
+            val localPath = htmlStorageManager.downloadAndSaveHtml(article.id, article.url)
             val entity = ArticleEntity(
                 id = article.id,
                 imageUrl = article.imageUrl,
                 title = article.title,
                 publishedAt = article.publishedDate,
                 url = article.url,
+                localHtmlPath = localPath,
                 isSaved = true
             )
             articleDao.insertArticle(entity)
             articleDao.updateSavedStatus(article.id, true)
-            Log.d(TAG, "Article ${article.id} saved to Room")
+            Log.d(TAG, "Article ${article.id} saved to Room with localHtmlPath: $localPath")
         }
     }
 
     suspend fun removeArticle(articleId: Int) {
         withContext(Dispatchers.IO) {
+            htmlStorageManager.deleteSavedHtml(articleId)
             articleDao.deleteArticleById(articleId)
-            Log.d(TAG, "Article $articleId deleted from Room")
+            Log.d(TAG, "Article $articleId deleted from Room and local HTML removed")
         }
     }
 
@@ -190,20 +194,23 @@ class ArticleRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             val currentSaved = articleDao.isArticleSaved(article.id) ?: article.isSaved
             if (currentSaved) {
+                htmlStorageManager.deleteSavedHtml(article.id)
                 articleDao.deleteArticleById(article.id)
-                Log.d(TAG, "Article ${article.id} removed from Room")
+                Log.d(TAG, "Article ${article.id} removed from Room and local HTML deleted")
                 false
             } else {
+                val localPath = htmlStorageManager.downloadAndSaveHtml(article.id, article.url)
                 val entity = ArticleEntity(
                     id = article.id,
                     imageUrl = article.imageUrl,
                     title = article.title,
                     publishedAt = article.publishedDate,
                     url = article.url,
+                    localHtmlPath = localPath,
                     isSaved = true
                 )
                 articleDao.insertArticle(entity)
-                Log.d(TAG, "Article ${article.id} saved to Room")
+                Log.d(TAG, "Article ${article.id} saved to Room with local HTML: $localPath")
                 true
             }
         }
@@ -256,6 +263,7 @@ class ArticleRepository @Inject constructor(
             title = title,
             publishedDate = formatPublishedDate(publishedAt),
             url = url,
+            localHtmlPath = localHtmlPath,
             isSaved = isSaved
         )
     }

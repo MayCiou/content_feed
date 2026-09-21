@@ -11,5 +11,6 @@ data class ArticleEntity(
     val title: String,
     val publishedAt: String,
     val url: String = "",
+    val localHtmlPath: String? = null,
     val isSaved: Boolean = false
 )
