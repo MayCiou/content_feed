@@ -3,6 +3,7 @@ package com.example.content_feed.data.repository
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.os.Build
 import android.util.Log
 import com.example.content_feed.data.local.WeatherDao
@@ -32,7 +33,8 @@ class WeatherRepository @Inject constructor(
 
     companion object {
         private const val TAG = "WeatherRepository"
-        private const val CACHE_VALID_DURATION_MS = 10 * 60 * 1000L // 10 minutes
+        private const val CACHE_VALID_DURATION_MS = 30 * 60 * 1000L // 30 minutes
+        private const val MIN_DISTANCE_THRESHOLD_METERS = 1000f // 1 km
         private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss"
     }
 
@@ -41,13 +43,30 @@ class WeatherRepository @Inject constructor(
             val cachedWeather = weatherDao.getLatestWeather()
             val currentTime = System.currentTimeMillis()
 
-            if (cachedWeather != null && (currentTime - cachedWeather.lastFetchedTimestamp) < CACHE_VALID_DURATION_MS) {
-                Log.d(TAG, "Using cached weather data from ${cachedWeather.lastFetchedTime}")
-                return@withContext WeatherUiState.Success(
-                    city = cachedWeather.city,
-                    temperature = cachedWeather.temperature,
-                    weatherInfo = cachedWeather.weatherInfo
+            if (cachedWeather != null) {
+                val timeElapsed = currentTime - cachedWeather.lastFetchedTimestamp
+                val distanceMeters = FloatArray(1)
+                Location.distanceBetween(
+                    latitude,
+                    longitude,
+                    cachedWeather.latitude,
+                    cachedWeather.longitude,
+                    distanceMeters
                 )
+                val movedDistance = distanceMeters[0]
+
+                // 只有在「距離 ≥ 1 km」或「距離上次 API ≥ 30 min」時才呼叫 API
+                val isDistanceExceeded = movedDistance >= MIN_DISTANCE_THRESHOLD_METERS
+                val isTimeExceeded = timeElapsed >= CACHE_VALID_DURATION_MS
+
+                if (!isDistanceExceeded && !isTimeExceeded) {
+                    Log.d(TAG, "Using cached weather: timeElapsed=${timeElapsed / 1000}s, distance=${movedDistance}m")
+                    return@withContext WeatherUiState.Success(
+                        city = cachedWeather.city,
+                        temperature = cachedWeather.temperature,
+                        weatherInfo = cachedWeather.weatherInfo
+                    )
+                }
             }
 
             try {
@@ -91,10 +110,12 @@ class WeatherRepository @Inject constructor(
                     temperature = temperatureText,
                     weatherInfo = weatherInfoText,
                     lastFetchedTime = formattedTime,
-                    lastFetchedTimestamp = currentTime
+                    lastFetchedTimestamp = currentTime,
+                    latitude = latitude,
+                    longitude = longitude
                 )
                 weatherDao.insertWeather(weatherEntity)
-                Log.d(TAG, "Saved weather data to Room at $formattedTime")
+                Log.d(TAG, "Saved weather data with location ($latitude, $longitude) to Room at $formattedTime")
 
                 WeatherUiState.Success(
                     city = cityName,

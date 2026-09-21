@@ -11,5 +11,7 @@ data class WeatherEntity(
     val temperature: String,
     val weatherInfo: String,
     val lastFetchedTime: String,
-    val lastFetchedTimestamp: Long
+    val lastFetchedTimestamp: Long,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )

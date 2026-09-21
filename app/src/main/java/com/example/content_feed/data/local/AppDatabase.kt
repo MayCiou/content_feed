@@ -3,7 +3,7 @@ package com.example.content_feed.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [WeatherEntity::class, ArticleRefreshEntity::class, ArticleEntity::class], version = 5, exportSchema = false)
+@Database(entities = [WeatherEntity::class, ArticleRefreshEntity::class, ArticleEntity::class], version = 6, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun weatherDao(): WeatherDao
     abstract fun articleRefreshDao(): ArticleRefreshDao
