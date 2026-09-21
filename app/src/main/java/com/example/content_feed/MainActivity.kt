@@ -11,8 +11,15 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.content_feed.ui.ReadingFragment
 import com.example.content_feed.ui.SavedFragment
+import com.example.content_feed.util.NetworkUtil
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var networkUtil: NetworkUtil
 
     private var readingFragment: ReadingFragment? = null
     private var savedFragment: SavedFragment? = null
@@ -29,9 +36,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        updateOfflineBanner()
         setupFragments(savedInstanceState)
-        // 初始化導航欄切換邏輯
         setupNavigation()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateOfflineBanner()
+    }
+
+    fun updateOfflineBanner() {
+        val isOffline = !networkUtil.isNetworkAvailable()
+        findViewById<View>(R.id.layoutOfflineView)?.visibility = if (isOffline) View.VISIBLE else View.GONE
     }
 
     private fun setupFragments(savedInstanceState: Bundle?) {
@@ -49,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             readingFragment = supportFragmentManager.findFragmentByTag("reading") as? ReadingFragment
             savedFragment = supportFragmentManager.findFragmentByTag("saved") as? SavedFragment
             
-            // 找出當前顯示的是哪一個
+            // Determine which one is currently displayed
             activeFragment = if (readingFragment?.isHidden == false) readingFragment else savedFragment
         }
     }
@@ -58,11 +75,10 @@ class MainActivity : AppCompatActivity() {
         val navReading = findViewById<ViewGroup>(R.id.navReading)
         val navSaved = findViewById<ViewGroup>(R.id.navSaved)
         
-        // 獲取內部的 FrameLayout (它們是 LinearLayout 的第一個子 View)
+        // Get internal FrameLayout (they are the first child View of LinearLayout)
         val containerReading = navReading.getChildAt(0)
         val containerSaved = navSaved.getChildAt(0)
-
-        // 根據 activeFragment 設定初始選中狀態
+        
         containerReading.isSelected = activeFragment == readingFragment
         containerSaved.isSelected = activeFragment == savedFragment
 
@@ -85,7 +101,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun showFragment(fragment: Fragment?) {
         if (fragment == null || fragment == activeFragment) return
-        
+
+        updateOfflineBanner()
         supportFragmentManager.beginTransaction()
             .hide(activeFragment!!)
             .show(fragment)
