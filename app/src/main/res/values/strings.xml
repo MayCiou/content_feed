@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">content_feed</string>
+    <string name="app_name">Content Feed</string>
 
     <!-- Weather status notice strings -->
     <string name="weather_status_icon_cd">Weather status icon</string>
