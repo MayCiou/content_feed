@@ -151,12 +151,23 @@ class ReadingFragment : Fragment() {
                 showArticlesLoading(false)
             }
 
+            // Handle initial load error (No cache / first launch + API fail)
+            if (refreshState is LoadState.Error && articleAdapter.itemCount == 0) {
+                val errorMsg = refreshState.error.localizedMessage
+                    ?: getString(R.string.article_initial_load_error)
+                showPaginationAlertDialog(
+                    title = "Error",
+                    message = errorMsg,
+                    positiveButtonText = "OK"
+                )
+            }
+
             val appendState = loadState.append
 
             when {
                 appendState is LoadState.Error -> {
-                    // Pagination Error: Show blank RecyclerView and alert
-                    binding.rvReadingContent.visibility = View.INVISIBLE
+                    // Pagination Error: Show alert dialog
+                    binding.rvReadingContent.visibility = View.VISIBLE
                     val errorMsg = appendState.error.localizedMessage ?: getString(R.string.pagination_error)
                     showPaginationAlertDialog(
                         title = "Error",
@@ -165,8 +176,8 @@ class ReadingFragment : Fragment() {
                     )
                 }
                 appendState.endOfPaginationReached && articleAdapter.itemCount > 0 -> {
-                    // No more data: Show blank RecyclerView and alert
-                    binding.rvReadingContent.visibility = View.INVISIBLE
+                    // No more data: Show alert dialog
+                    binding.rvReadingContent.visibility = View.VISIBLE
                     showPaginationAlertDialog(
                         title = "Notice",
                         message = getString(R.string.pagination_no_more),

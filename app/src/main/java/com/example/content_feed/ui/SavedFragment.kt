@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -84,27 +85,52 @@ class SavedFragment : Fragment() {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
-            updateSavedList(viewModel.savedArticles.value)
+            handleUiState(viewModel.uiState.value)
         }
     }
 
-    private fun updateSavedList(list: List<ArticleItem>) {
+    private fun handleUiState(state: SavedUiState) {
         if (_binding == null) return
-        if (list.isEmpty()) {
-            binding.tvEmptySaved.visibility = View.VISIBLE
-            binding.rvSavedContent.visibility = View.GONE
-        } else {
-            binding.tvEmptySaved.visibility = View.GONE
-            binding.rvSavedContent.visibility = View.VISIBLE
-            savedAdapter.submitList(list)
+        when (state) {
+            is SavedUiState.Loading -> {
+                // Initial load from local db is fast
+            }
+            is SavedUiState.Success -> {
+                if (state.articles.isEmpty()) {
+                    binding.tvEmptySaved.visibility = View.VISIBLE
+                    binding.rvSavedContent.visibility = View.GONE
+                } else {
+                    binding.tvEmptySaved.visibility = View.GONE
+                    binding.rvSavedContent.visibility = View.VISIBLE
+                    savedAdapter.submitList(state.articles)
+                }
+            }
+            is SavedUiState.Error -> {
+                binding.rvSavedContent.visibility = View.GONE
+                binding.tvEmptySaved.visibility = View.VISIBLE
+                showErrorAlertDialog(state.message)
+            }
         }
+    }
+
+    private fun showErrorAlertDialog(message: String) {
+        if (!isAdded || activity?.isFinishing == true) return
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.pagination_error)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(true)
+            .show()
     }
 
     private fun setupObserver() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.savedArticles.collectLatest { list ->
-                    updateSavedList(list)
+                viewModel.uiState.collectLatest { state ->
+                    handleUiState(state)
                 }
             }
         }
