@@ -33,7 +33,7 @@ class ArticlePagingAdapter(
     }
 
     class ArticleViewHolder(
-        private val binding: ArticleItemBinding,
+        val binding: ArticleItemBinding,
         private val onSaveClick: (ArticleItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 

@@ -17,6 +17,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -69,6 +70,18 @@ class ArticleRepository @Inject constructor(
             articleDao.getAllArticlesAsc().map { entity ->
                 entity.toArticleItem()
             }
+        }
+    }
+
+    fun getSavedArticlesStream(): Flow<List<ArticleItem>> {
+        return articleDao.getSavedArticlesFlow().map { entities ->
+            entities.map { it.toArticleItem() }
+        }
+    }
+
+    suspend fun getSavedArticles(): List<ArticleItem> {
+        return withContext(Dispatchers.IO) {
+            articleDao.getSavedArticles().map { it.toArticleItem() }
         }
     }
 

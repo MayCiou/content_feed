@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ArticleDao {
@@ -31,6 +32,9 @@ interface ArticleDao {
 
     @Query("SELECT * FROM articles WHERE isSaved = 1 ORDER BY publishedAt DESC")
     suspend fun getSavedArticles(): List<ArticleEntity>
+
+    @Query("SELECT * FROM articles WHERE isSaved = 1 ORDER BY publishedAt DESC")
+    fun getSavedArticlesFlow(): Flow<List<ArticleEntity>>
 
     @Query("DELETE FROM articles")
     suspend fun clearAll()

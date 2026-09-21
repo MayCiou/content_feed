@@ -36,6 +36,9 @@ class ReadingFragment : Fragment() {
     @Inject
     lateinit var networkUtil: NetworkUtil
 
+    @Inject
+    lateinit var savedSharedEvents: SavedSharedEvents
+
     private var _binding: FragmentReadingBinding? = null
     private val binding get() = _binding!!
 
@@ -69,9 +72,32 @@ class ReadingFragment : Fragment() {
 
         setupRecyclerView()
         setupWeatherObserver()
+        setupUnsavedSyncObserver()
         if (checkNetworkAndHandleOffline()) {
             setupArticlesObserver()
             checkAndRequestLocationPermission()
+        }
+    }
+
+    private fun setupUnsavedSyncObserver() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                savedSharedEvents.removedArticleIds.collect { removedId ->
+                    updateItemSavedStatus(removedId, isSaved = false)
+                }
+            }
+        }
+    }
+
+    private fun updateItemSavedStatus(articleId: Int, isSaved: Boolean) {
+        val itemCount = articleAdapter.itemCount
+        for (i in 0 until itemCount) {
+            val item = articleAdapter.peek(i)
+            if (item?.id == articleId) {
+                val viewHolder = binding.rvReadingContent.findViewHolderForAdapterPosition(i) as? ArticlePagingAdapter.ArticleViewHolder
+                viewHolder?.binding?.btnSave?.isSelected = isSaved
+                break
+            }
         }
     }
 
