@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -76,6 +77,10 @@ class ArticlesDetailActivity : AppCompatActivity() {
         val settings = binding.webViewArticles.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
+        settings.allowFileAccess = true
+        settings.allowContentAccess = true
+        settings.allowFileAccessFromFileURLs = true
+        settings.allowUniversalAccessFromFileURLs = true
         settings.cacheMode = WebSettings.LOAD_DEFAULT
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
@@ -103,17 +108,111 @@ class ArticlesDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadContent(mode: String, url: String, localHtmlPath: String) {
+    private fun loadContent(
+        mode: String,
+        url: String,
+        localHtmlPath: String
+    ) {
+        val tag = "WebView"
+
+        Log.d(
+            tag,
+            "loadContent: mode=$mode, url=$url, localHtmlPath=$localHtmlPath"
+        )
+
         if (mode == MODE_HTML) {
-            val localFile = if (localHtmlPath.isNotBlank()) File(localHtmlPath) else null
-            if (localFile != null && localFile.exists() && localFile.length() > 0) {
-                binding.webViewArticles.loadUrl("file://${localFile.absolutePath}")
-            } else if (url.isNotBlank()) {
-                binding.webViewArticles.loadUrl(url)
+            val localFile =
+                if (localHtmlPath.isNotBlank()) {
+                    File(localHtmlPath)
+                } else {
+                    null
+                }
+
+            if (localFile != null &&
+                localFile.exists() &&
+                localFile.length() > 0
+            ) {
+                Log.d(tag, "Local HTML exists")
+                Log.d(tag, "Local HTML path=${localFile.absolutePath}")
+                Log.d(tag, "Local HTML size=${localFile.length()} bytes")
+
+                try {
+                    val htmlContent = localFile.readText(Charsets.UTF_8)
+
+                    Log.d(
+                        tag,
+                        "HTML decoded length=${htmlContent.length} chars"
+                    )
+
+                    Log.d(
+                        tag,
+                        "HTML preview=${htmlContent.take(300)}"
+                    )
+
+                    val baseUrl = if (url.isNotBlank()) {
+                        url
+                    } else {
+                        "https://localhost/"
+                    }
+
+                    Log.d(
+                        tag,
+                        "Loading local HTML with baseUrl=$baseUrl"
+                    )
+
+                    binding.webViewArticles.loadDataWithBaseURL(
+                        baseUrl,
+                        htmlContent,
+                        "text/html",
+                        "UTF-8",
+                        null
+                    )
+
+                } catch (e: Exception) {
+                    Log.e(
+                        tag,
+                        "Failed to read local HTML, " +
+                                "fallback to file URL",
+                        e
+                    )
+
+                    val fileUrl = localFile.toURI().toString()
+
+                    Log.d(
+                        tag,
+                        "Fallback file URL=$fileUrl"
+                    )
+
+                    binding.webViewArticles.loadUrl(fileUrl)
+                }
+            } else {
+                Log.d(
+                    tag,
+                    "Local HTML not available: " +
+                            "exists=${localFile?.exists()}, " +
+                            "size=${localFile?.length() ?: 0}"
+                )
+
+                if (url.isNotBlank()) {
+                    Log.d(tag, "Loading remote URL=$url")
+                    binding.webViewArticles.loadUrl(url)
+                } else {
+                    Log.w(tag, "No local HTML and no URL")
+                }
             }
         } else {
             if (url.isNotBlank()) {
+                Log.d(
+                    tag,
+                    "Non-HTML mode, loading URL=$url"
+                )
+
                 binding.webViewArticles.loadUrl(url)
+            } else {
+                Log.w(
+                    tag,
+                    "Non-HTML mode but URL is empty"
+                )
             }
         }
     }

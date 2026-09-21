@@ -36,63 +36,119 @@ class HtmlStorageManager @Inject constructor(
             return dir
         }
 
-    suspend fun downloadAndSaveHtml(articleId: Int, url: String): String? {
+    suspend fun downloadAndSaveHtml(
+        articleId: Int,
+        url: String
+    ): String? {
         if (url.isBlank()) return null
+
         return withContext(Dispatchers.IO) {
-            val targetFile = File(offlineArticlesDir, "article_$articleId.html")
-            val etagFile = File(offlineArticlesDir, "$ETAG_PREFIX$articleId.txt")
+            val targetFile =
+                File(offlineArticlesDir, "article_$articleId.html")
+
+            val etagFile =
+                File(offlineArticlesDir, "$ETAG_PREFIX$articleId.txt")
 
             try {
                 val requestBuilder = Request.Builder()
                     .url(url)
-                    // 1. 啟用 gzip/deflate 壓縮 (省 70%~80% 流量)
-                    .header("Accept-Encoding", "gzip, deflate")
-                    // 2. 僅接受 text/html 網頁內文，排除非必要廣告與資源
-                    .header("Accept", "text/html,application/xhtml+xml")
-                    .header("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:120.0) Gecko/120.0 Firefox/120.0")
-                    .cacheControl(CacheControl.Builder().maxStale(7, TimeUnit.DAYS).build())
+                    // Do NOT manually set Accept-Encoding.
+                    // OkHttp will handle gzip/deflate transparently.
+                    .header(
+                        "Accept",
+                        "text/html,application/xhtml+xml"
+                    )
+                    .header(
+                        "User-Agent",
+                        "Mozilla/5.0 (Android; Mobile; rv:120.0) " +
+                                "Gecko/120.0 Firefox/120.0"
+                    )
+                    .cacheControl(
+                        CacheControl.Builder()
+                            .maxStale(7, TimeUnit.DAYS)
+                            .build()
+                    )
 
-                // 3. 條件式請求 (If-None-Match ETag 快取協定)
-                if (targetFile.exists() && targetFile.length() > 0 && etagFile.exists()) {
+                // Conditional request with ETag
+                if (targetFile.exists() &&
+                    targetFile.length() > 0 &&
+                    etagFile.exists()
+                ) {
                     val savedEtag = etagFile.readText().trim()
+
                     if (savedEtag.isNotBlank()) {
-                        requestBuilder.header("If-None-Match", savedEtag)
+                        requestBuilder.header(
+                            "If-None-Match",
+                            savedEtag
+                        )
                     }
                 }
 
-                val response = okHttpClient.newCall(requestBuilder.build()).execute()
+                val response = okHttpClient
+                    .newCall(requestBuilder.build())
+                    .execute()
 
-                // 304 Not Modified: 遠端內容無異動，直接沿用本地檔案，消耗 0 流量！
-                if (response.code == 304 && targetFile.exists() && targetFile.length() > 0) {
-                    Log.d(TAG, "Article $articleId returned 304 Not Modified. Reusing local file (0 network used).")
+                // 304 Not Modified
+                if (response.code == 304 &&
+                    targetFile.exists() &&
+                    targetFile.length() > 0
+                ) {
+                    Log.d(
+                        TAG,
+                        "Article $articleId returned 304 Not Modified. " +
+                                "Reusing local file."
+                    )
+
                     response.close()
                     return@withContext targetFile.absolutePath
                 }
 
                 if (!response.isSuccessful) {
-                    Log.w(TAG, "Failed to download HTML for article $articleId, code: ${response.code}")
+                    Log.w(
+                        TAG,
+                        "Failed to download HTML for article " +
+                                "$articleId, code=${response.code}"
+                    )
+
                     response.close()
                     return@withContext null
                 }
 
-                val responseBody = response.body ?: return@withContext null
+                val responseBody =
+                    response.body
+                        ?: return@withContext null
 
-                // 串流式寫入磁碟 (Streaming via okio BufferedSink) - 杜絕全量記憶體載入造成 OOM
+                // OkHttp transparently decompresses gzip.
                 targetFile.sink().buffer().use { sink ->
                     sink.writeAll(responseBody.source())
                 }
 
-                // 儲存 ETag 標頭供下次比對
+                // Save ETag
                 val newEtag = response.header("ETag")
+
                 if (!newEtag.isNullOrBlank()) {
                     etagFile.writeText(newEtag)
                 }
 
-                Log.d(TAG, "HTML streamed successfully for article $articleId (${targetFile.length()} bytes)")
+                Log.d(
+                    TAG,
+                    "HTML saved successfully for article " +
+                            "$articleId (${targetFile.length()} bytes)"
+                )
+
                 targetFile.absolutePath
+
             } catch (e: Exception) {
-                Log.e(TAG, "Error streaming HTML for article $articleId: ${e.message}", e)
-                if (targetFile.exists() && targetFile.length() > 0) {
+                Log.e(
+                    TAG,
+                    "Error downloading HTML for article " +
+                            "$articleId: ${e.message}",
+                    e
+                )
+
+                if (targetFile.exists() &&
+                    targetFile.length() > 0
+                ) {
                     targetFile.absolutePath
                 } else {
                     null
