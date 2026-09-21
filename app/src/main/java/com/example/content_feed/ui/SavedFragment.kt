@@ -1,5 +1,8 @@
 package com.example.content_feed.ui
 
+import android.app.Activity
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.content_feed.R
 import com.example.content_feed.data.model.ArticleItem
 import com.example.content_feed.databinding.FragmentSavedBinding
 import com.example.content_feed.ui.adapter.SavedArticlesAdapter
@@ -48,7 +52,25 @@ class SavedFragment : Fragment() {
                 viewModel.unsaveArticle(article)
             },
             onItemClick = { article ->
-                // Future offline WebView click
+                val intent = Intent(requireContext(), ArticlesDetailActivity::class.java).apply {
+                    putExtra(ArticlesDetailActivity.EXTRA_URL, article.url)
+                    putExtra(ArticlesDetailActivity.EXTRA_LOCAL_HTML_PATH, article.localHtmlPath)
+                    putExtra(ArticlesDetailActivity.EXTRA_LOAD_MODE, ArticlesDetailActivity.MODE_HTML)
+                }
+                startActivity(intent)
+                val activity = activity
+                if (activity != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        activity.overrideActivityTransition(
+                            Activity.OVERRIDE_TRANSITION_OPEN,
+                            R.anim.slide_in_right,
+                            R.anim.slide_out_left
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
+                }
             }
         )
 

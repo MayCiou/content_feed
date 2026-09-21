@@ -1,7 +1,10 @@
 package com.example.content_feed.ui
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -102,9 +105,32 @@ class ReadingFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        articleAdapter = ArticlePagingAdapter { article ->
-            viewModel.toggleSaveArticle(article)
-        }
+        articleAdapter = ArticlePagingAdapter(
+            onSaveClick = { article ->
+                viewModel.toggleSaveArticle(article)
+            },
+            onItemClick = { article ->
+                val intent = Intent(requireContext(), ArticlesDetailActivity::class.java).apply {
+                    putExtra(ArticlesDetailActivity.EXTRA_URL, article.url)
+                    putExtra(ArticlesDetailActivity.EXTRA_LOCAL_HTML_PATH, article.localHtmlPath)
+                    putExtra(ArticlesDetailActivity.EXTRA_LOAD_MODE, ArticlesDetailActivity.MODE_URL)
+                }
+                startActivity(intent)
+                val activity = activity
+                if (activity != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        activity.overrideActivityTransition(
+                            Activity.OVERRIDE_TRANSITION_OPEN,
+                            R.anim.slide_in_right,
+                            R.anim.slide_out_left
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
+                }
+            }
+        )
 
         binding.rvReadingContent.apply {
             layoutManager = LinearLayoutManager(requireContext())

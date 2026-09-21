@@ -10,4 +10,5 @@
     <string name="pagination_error">Failed to load more articles</string>
     <string name="pagination_no_more">No more articles</string>
     <string name="no_saved_articles">No saved articles</string>
+    <string name="back">Back</string>
 </resources>

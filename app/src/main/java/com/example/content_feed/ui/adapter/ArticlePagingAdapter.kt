@@ -16,7 +16,8 @@ import com.example.content_feed.data.model.ArticleItem
 import com.example.content_feed.databinding.ArticleItemBinding
 
 class ArticlePagingAdapter(
-    private val onSaveClick: (ArticleItem) -> Unit = {}
+    private val onSaveClick: (ArticleItem) -> Unit = {},
+    private val onItemClick: (ArticleItem) -> Unit = {}
 ) : PagingDataAdapter<ArticleItem, ArticlePagingAdapter.ArticleViewHolder>(ArticleDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder {
@@ -25,7 +26,7 @@ class ArticlePagingAdapter(
             parent,
             false
         )
-        return ArticleViewHolder(binding, onSaveClick)
+        return ArticleViewHolder(binding, onSaveClick, onItemClick)
     }
 
     override fun onBindViewHolder(holder: ArticleViewHolder, position: Int) {
@@ -34,7 +35,8 @@ class ArticlePagingAdapter(
 
     class ArticleViewHolder(
         val binding: ArticleItemBinding,
-        private val onSaveClick: (ArticleItem) -> Unit
+        private val onSaveClick: (ArticleItem) -> Unit,
+        private val onItemClick: (ArticleItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: ArticleItem) {
@@ -85,6 +87,10 @@ class ArticlePagingAdapter(
             binding.btnSave.setOnClickListener {
                 binding.btnSave.isSelected = !binding.btnSave.isSelected
                 onSaveClick(item.copy(isSaved = binding.btnSave.isSelected))
+            }
+
+            binding.root.setOnClickListener {
+                onItemClick(item)
             }
         }
     }
