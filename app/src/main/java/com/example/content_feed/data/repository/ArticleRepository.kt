@@ -48,12 +48,21 @@ class ArticleRepository @Inject constructor(
     private val apiMutex = Mutex()
     private var lastRequestTimestamp = 0L
 
-    suspend fun shouldFetchFromApi(): Boolean {
+    /**
+     * Checks if cached articles exist in the local database.
+     */
+    suspend fun hasCachedArticles(): Boolean {
+        return withContext(Dispatchers.IO) {
+            articleDao.getArticleCount() > 0
+        }
+    }
+
+    /**
+     * Checks if the cache duration exceeds 1 hour.
+     */
+    suspend fun isCacheExpired(): Boolean {
         return withContext(Dispatchers.IO) {
             val refreshTimeStr = articleRefreshDao.getLastArticleRefreshTime() ?: return@withContext true
-            val count = articleDao.getArticleCount()
-            if (count == 0) return@withContext true
-
             try {
                 val dateFormat = SimpleDateFormat(DATE_FORMAT_PATTERN, Locale.getDefault())
                 val lastDate = dateFormat.parse(refreshTimeStr) ?: return@withContext true
@@ -62,6 +71,12 @@ class ArticleRepository @Inject constructor(
             } catch (e: Exception) {
                 true
             }
+        }
+    }
+
+    suspend fun shouldFetchFromApi(): Boolean {
+        return withContext(Dispatchers.IO) {
+            !hasCachedArticles() || isCacheExpired()
         }
     }
 
@@ -132,14 +147,13 @@ class ArticleRepository @Inject constructor(
                         dto.toArticleEntity()
                     }
 
-                    if (offset == 0 && publishedAtLt == null) {
-                        articleDao.clearAll()
-                    }
-                    articleDao.insertArticles(articleEntities)
-
+                    // Only clear the old cache when refreshing due to cache expiration (> 1 hr)
+                    // Do NOT clear cache when appending older articles during scroll
                     if (isRefresh) {
+                        articleDao.clearAll()
                         saveLastRefreshTime(formattedTime)
                     }
+                    articleDao.insertArticles(articleEntities)
 
                     return@withContext articleEntities.map { it.toArticleItem() }
 
