@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Circle Background Accent -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M60,10 A50,50 0 1,0 60,110 A50,50 0 1,0 60,10 Z" />
+
+    <!-- Newspaper / Content Feed Icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,36 h44 c3.3,0 6,2.7 6,6 v36 c0,3.3 -2.7,6 -6,6 H38 c-3.3,0 -6,-2.7 -6,-6 V42 c0,-3.3 2.7,-6 6,-6 z" />
+
+    <!-- Article Image Placeholder Box -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M42,46 h14 v14 H42 z" />
+
+    <!-- Content Feed Lines -->
+    <path
+        android:fillColor="#757575"
+        android:pathData="M62,46 h16 v3 H62 z M62,52 h12 v3 H62 z M62,57 h14 v3 H62 z M42,66 h36 v3 H42 z M42,72 h28 v3 H42 z" />
+</vector>

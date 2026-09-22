@@ -6,4 +6,15 @@
     </style>
 
     <style name="Theme.Content_feed" parent="Base.Theme.Content_feed" />
+
+    <style name="Theme.Content_feed.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/black</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Content_feed</item>
+    </style>
+
+    <style name="RoundedSquare" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
 </resources>
