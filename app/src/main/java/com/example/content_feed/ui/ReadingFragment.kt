@@ -161,30 +161,6 @@ class ReadingFragment : Fragment() {
                     positiveButtonText = "OK"
                 )
             }
-
-            val appendState = loadState.append
-
-            when {
-                appendState is LoadState.Error -> {
-                    // Pagination Error: Show alert dialog
-                    binding.rvReadingContent.visibility = View.VISIBLE
-                    val errorMsg = appendState.error.localizedMessage ?: getString(R.string.pagination_error)
-                    showPaginationAlertDialog(
-                        title = "Error",
-                        message = errorMsg,
-                        positiveButtonText = "OK"
-                    )
-                }
-                appendState.endOfPaginationReached && articleAdapter.itemCount > 0 -> {
-                    // No more data: Show alert dialog
-                    binding.rvReadingContent.visibility = View.VISIBLE
-                    showPaginationAlertDialog(
-                        title = "Notice",
-                        message = getString(R.string.pagination_no_more),
-                        positiveButtonText = "OK"
-                    )
-                }
-            }
         }
     }
 
