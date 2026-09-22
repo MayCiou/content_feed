@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">content_feed</string>
+    <string name="app_name">Content Feed</string>
 
     <!-- Weather status notice strings -->
     <string name="weather_status_icon_cd">Weather status icon</string>
@@ -10,5 +10,7 @@
     <string name="pagination_error">Failed to load more articles</string>
     <string name="pagination_no_more">No more articles</string>
     <string name="no_saved_articles">No saved articles</string>
+    <string name="saved_error_message">Failed to load saved articles</string>
+    <string name="article_initial_load_error">Failed to load articles. Please check your network connection.</string>
     <string name="back">Back</string>
 </resources>

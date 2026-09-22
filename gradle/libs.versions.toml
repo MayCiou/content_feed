@@ -20,6 +20,8 @@ retrofit = "2.11.0"
 okhttp = "4.12.0"
 paging = "3.3.6"
 glide = "4.16.0"
+coreSplashScreen = "1.2.0"
+swiperefreshlayout = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,8 @@ retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashScreen" }
+androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

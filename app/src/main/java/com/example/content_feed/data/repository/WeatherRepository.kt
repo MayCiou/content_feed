@@ -33,7 +33,7 @@ class WeatherRepository @Inject constructor(
 
     companion object {
         private const val TAG = "WeatherRepository"
-        private const val CACHE_VALID_DURATION_MS = 30 * 60 * 1000L // 30 minutes
+        private const val CACHE_VALID_DURATION_MS = 15 * 60 * 1000L // 30 minutes
         private const val MIN_DISTANCE_THRESHOLD_METERS = 1000f // 1 km
         private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss"
     }

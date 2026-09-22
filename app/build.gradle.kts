@@ -15,7 +15,7 @@ android {
         minSdk = 24
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0.3"
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,6 +43,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.recyclerview)
     implementation(libs.material)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.swiperefreshlayout)
 
     // Hilt
     implementation(libs.hilt.android)

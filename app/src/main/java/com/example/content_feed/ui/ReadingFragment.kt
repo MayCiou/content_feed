@@ -141,38 +141,36 @@ class ReadingFragment : Fragment() {
             )
         }
 
+        binding.swipeRefreshLayout.setColorSchemeResources(R.color.brand_green)
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.fetchDataWithLocation()
+            articleAdapter.refresh()
+        }
+
         articleAdapter.addLoadStateListener { loadState ->
             val refreshState = loadState.refresh
 
-            // Control initial articles loading shimmer
-            if (refreshState is LoadState.Loading && articleAdapter.itemCount == 0) {
+            // Stop swipe refreshing when refresh completes or errors
+            if (refreshState !is LoadState.Loading) {
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
+
+            // Control initial articles loading shimmer (only when not swiping)
+            if (refreshState is LoadState.Loading && articleAdapter.itemCount == 0 && !binding.swipeRefreshLayout.isRefreshing) {
                 showArticlesLoading(true)
             } else {
                 showArticlesLoading(false)
             }
 
-            val appendState = loadState.append
-
-            when {
-                appendState is LoadState.Error -> {
-                    // Pagination Error: Show blank RecyclerView and alert
-                    binding.rvReadingContent.visibility = View.INVISIBLE
-                    val errorMsg = appendState.error.localizedMessage ?: getString(R.string.pagination_error)
-                    showPaginationAlertDialog(
-                        title = "Error",
-                        message = errorMsg,
-                        positiveButtonText = "OK"
-                    )
-                }
-                appendState.endOfPaginationReached && articleAdapter.itemCount > 0 -> {
-                    // No more data: Show blank RecyclerView and alert
-                    binding.rvReadingContent.visibility = View.INVISIBLE
-                    showPaginationAlertDialog(
-                        title = "Notice",
-                        message = getString(R.string.pagination_no_more),
-                        positiveButtonText = "OK"
-                    )
-                }
+            // Handle initial load error (No cache / first launch + API fail)
+            if (refreshState is LoadState.Error && articleAdapter.itemCount == 0) {
+                val errorMsg = refreshState.error.localizedMessage
+                    ?: getString(R.string.article_initial_load_error)
+                showPaginationAlertDialog(
+                    title = "Error",
+                    message = errorMsg,
+                    positiveButtonText = "OK"
+                )
             }
         }
     }
@@ -242,13 +240,14 @@ class ReadingFragment : Fragment() {
         val isConnected = networkUtil.isNetworkAvailable()
         return if (isConnected) {
             _binding?.layoutWeatherCard?.root?.visibility = View.VISIBLE
-            _binding?.rvReadingContent?.visibility = View.VISIBLE
+            _binding?.swipeRefreshLayout?.visibility = View.VISIBLE
             true
         } else {
             showWeatherLoading(isLoading = false)
             showArticlesLoading(isLoading = false)
+            _binding?.swipeRefreshLayout?.isRefreshing = false
             _binding?.layoutWeatherCard?.root?.visibility = View.GONE
-            _binding?.rvReadingContent?.visibility = View.GONE
+            _binding?.swipeRefreshLayout?.visibility = View.GONE
             false
         }
     }

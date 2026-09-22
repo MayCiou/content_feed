@@ -7,6 +7,8 @@ import com.example.content_feed.data.repository.ArticleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,12 +19,14 @@ class SavedViewModel @Inject constructor(
     private val savedSharedEvents: SavedSharedEvents
 ) : ViewModel() {
 
-    val savedArticles: StateFlow<List<ArticleItem>> =
+    val uiState: StateFlow<SavedUiState> =
         articleRepository.getSavedArticlesStream()
+            .map<List<ArticleItem>, SavedUiState> { SavedUiState.Success(it) }
+            .catch { emit(SavedUiState.Error(it.localizedMessage ?: "Failed to load saved articles")) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
+                initialValue = SavedUiState.Loading
             )
 
     fun unsaveArticle(article: ArticleItem) {
