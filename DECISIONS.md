@@ -1,8 +1,8 @@
 ## 1. State Management
 
-**Chosen:** ViewModel + StateFlow
+**Chosen:** ViewModel + LiveData
 
-**Alternative:** LiveData
+**Alternative:** StateFlow
 
 **Trade-off:**
 
